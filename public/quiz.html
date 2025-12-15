@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: containerFadeIn 0.5s ease forwards;
+        }
+
+        @keyframes containerFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #1e3c72 0%, #7e22ce 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #7e22ce, #3b82f6);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(126, 34, 206, 0.3);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            transition: opacity 0.3s ease, height 0.3s ease;
+        }
+
+        .stats.hidden {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #7e22ce 0%, #3b82f6 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(126, 34, 206, 0.4);
+            animation: statBoxPop 0.5s ease;
+        }
+
+        @keyframes statBoxPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .stat-box h3 {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .stat-box .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7e22ce 0%, #3b82f6 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .question-container {
+            animation: questionSlide 0.4s ease;
+        }
+
+        @keyframes questionSlide {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 15px;
+            border-left: 5px solid #7e22ce;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 1.1em;
+        }
+
+        .option:hover:not(.correct):not(.wrong):not(.disabled) {
+            border-color: #7e22ce;
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(126, 34, 206, 0.2);
+        }
+
+        .option.correct {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+            animation: correctPulse 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .option.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+            opacity: 0.5;
+            cursor: not-allowed;
+            animation: wrongShake 0.5s ease;
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-btn.prev {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .nav-btn.prev:hover:not(:disabled) {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.next {
+            background: linear-gradient(135deg, #7e22ce 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .nav-btn.next:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(126, 34, 206, 0.4);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .result-screen {
+            text-align: center;
+            animation: resultZoom 0.6s ease;
+        }
+
+        @keyframes resultZoom {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .trophy {
+            font-size: 5em;
+            margin: 20px 0;
+            animation: trophyBounce 1s ease infinite;
+        }
+
+        @keyframes trophyBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #7e22ce 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(126, 34, 206, 0.4);
+            margin: 10px;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(126, 34, 206, 0.6);
+        }
+
+        .timer-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7e22ce 0%, #3b82f6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .timer-inner {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        /* Fullscreen mode styles */
+        body.fullscreen-mode {
+            padding: 0;
+        }
+
+        .fullscreen-mode .container {
+            max-width: 100%;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        .fullscreen-mode .header {
+            display: none;
+        }
+
+        .fullscreen-mode .progress-bar {
+            margin-bottom: 15px;
+        }
+
+        .fullscreen-mode .question-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .fullscreen-mode .question {
+            font-size: 2.8em;
+            font-weight: bold;
+            padding: 30px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            background: rgba(126, 34, 206, 0.1);
+            border: 3px solid #7e22ce;
+            text-align: center;
+        }
+
+        .fullscreen-mode .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+            margin-bottom: 15px;
+        }
+
+        .fullscreen-mode .option {
+            font-size: 1.8em;
+            font-weight: 600;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 0;
+            border-width: 4px;
+        }
+
+        .fullscreen-mode .option strong {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+
+        .fullscreen-mode .options .option:nth-child(1) {
+            background: linear-gradient(135deg, #FFD93D 0%, #FFA500 100%);
+            border-color: #FF8C00;
+        }
+
+        .fullscreen-mode .options .option:nth-child(2) {
+            background: linear-gradient(135deg, #F9ED69 0%, #F08A5D 100%);
+            border-color: #E07B39;
+        }
+
+        .fullscreen-mode .options .option:nth-child(3) {
+            background: linear-gradient(135deg, #6BCF7F 0%, #4CAF50 100%);
+            border-color: #388E3C;
+        }
+
+        .fullscreen-mode .options .option:nth-child(4) {
+            background: linear-gradient(135deg, #6DD5FA 0%, #2980B9 100%);
+            border-color: #1F5F8B;
+        }
+
+        .fullscreen-mode .options .option.correct {
+            border-color: #00C851;
+            border-width: 6px;
+            box-shadow: 0 0 30px rgba(0, 200, 81, 0.8);
+        }
+
+        .fullscreen-mode .options .option.wrong {
+            border-color: #ff4444;
+            border-width: 6px;
+            opacity: 0.4;
+        }
+
+        .fullscreen-mode .navigation-buttons {
+            flex-shrink: 0;
+            gap: 20px;
+        }
+
+        .fullscreen-mode .nav-btn {
+            font-size: 1.6em;
+            padding: 20px 40px;
+        }
+
+        @media (max-width: 768px) {
+            .fullscreen-mode .question {
+                font-size: 1.8em;
+                padding: 20px;
+            }
+
+            .fullscreen-mode .option {
+                font-size: 1.3em;
+                padding: 20px 15px;
+            }
+
+            .fullscreen-mode .nav-btn {
+                font-size: 1.2em;
+                padding: 15px 30px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1000px;
+                padding: 50px;
+            }
+
+            .header h1 {
+                font-size: 3.5em;
+            }
+
+            .question {
+                font-size: 2em;
+                padding: 30px;
+            }
+
+            .option {
+                font-size: 1.6em;
+                padding: 30px;
+            }
+
+            .stat-box .value {
+                font-size: 2.5em;
+            }
+
+            .nav-btn {
+                font-size: 1.4em;
+                padding: 20px 40px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .question {
+                font-size: 1.1em;
+            }
+
+            .option {
+                font-size: 1em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Trắc nghiệm Python</h1>
+            <div class="user-info">
+                👤 <span id="username"></span>
+                <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+            </div>
+        </div>
+
+        <div id="stats" class="stats">
+            <div class="stat-box">
+                <h3>Câu hỏi</h3>
+                <div class="value"><span id="currentQ">1</span>/<span id="totalQ">35</span></div>
+            </div>
+            <div class="stat-box">
+                <h3>Thời gian</h3>
+                <div class="value" id="timer">00:00</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <div id="quizArea"></div>
+    </div>
+
+    <script>
+        const questions = [
+            { id: 1, question: "Python sử dụng gì để xác định khối lệnh?", options: ["Khoảng trắng thụt đầu dòng", "Dấu ngoặc nhọn {}", "Dấu chấm phẩy ;", "Dấu gạch ngang –"], correct: 0 },
+            { id: 2, question: "Lệnh nào dùng để in dữ liệu ra màn hình?", options: ["echo()", "output()", "print()", "show()"], correct: 2 },
+            { id: 3, question: "Đoạn mã if 5 > 3: cần điều gì để tránh lỗi?", options: ["Thụt đầu dòng phía sau", "Đóng ngoặc ; ở cuối", "Đặt dấu {} bao quanh", "Viết thêm dấu nháy \"\""], correct: 0 },
+            { id: 4, question: "Câu lệnh nào tạo vòng lặp 5 lần?", options: ["for i in range(0, 6)", "for i in range(5)", "for i in 1..5", "loop (5)"], correct: 1 },
+            { id: 5, question: "Trong Python, biến dùng để làm gì?", options: ["Lưu trữ dữ liệu tạm thời", "Chứa mã lệnh Python", "Lưu hình ảnh và file", "Tạo thư mục mới"], correct: 0 },
+            { id: 6, question: "Lệnh nào dùng để nhập dữ liệu từ người dùng?", options: ["ask()", "input()", "receive()", "get()"], correct: 1 },
+            { id: 7, question: "Trong lệnh print(\"Xin chào\", 5+3), Python sẽ:", options: ["Ghép chuỗi và số lại thành một chuỗi duy nhất", "In từng phần theo thứ tự", "Không cho phép in chuỗi và số", "Báo lỗi toán tử"], correct: 1 },
+            { id: 8, question: "Sai lầm phổ biến nào thường gặp?", options: ["Dùng print thay bằng prnit", "Sai dấu nháy kép", "Sai thụt dòng", "Tất cả các ý trên"], correct: 3 },
+            { id: 9, question: "Lệnh nào mở file ở chế độ ghi nối tiếp không xóa nội dung?", options: ["open(\"x.txt\", \"a\")", "open(\"x.txt\", \"w\")", "open(\"x.txt\", \"r\")", "open(\"x.txt\", \"x\")"], correct: 0 },
+            { id: 10, question: "Trong hiệu ứng chữ chạy, time.sleep(0.1) có tác dụng gì?", options: ["Làm chương trình dừng lại chút", "Xóa màn hình trước đó", "Tạo thêm một dòng mới", "Tăng tốc in ký tự"], correct: 0 },
+            { id: 11, question: "flush=True trong print() nghĩa là gì?", options: ["Giữ lại ký tự", "Buộc in ngay lập tức", "Xóa bộ nhớ đệm", "Không in gì cả"], correct: 1 },
+            { id: 12, question: "Khi chạy Python bằng VS Code, đuôi file phải là gì?", options: [".exe", ".py", ".txt", ".cmd"], correct: 1 },
+            { id: 13, question: "Lệnh kiểm tra phiên bản Python trên máy?", options: ["python version", "py --check", "python --version", "py.ver()"], correct: 2 },
+            { id: 14, question: "Trong Termux, lệnh cài Python là:", options: ["pkg get python", "pkg install python", "install python now", "setup python"], correct: 1 },
+            { id: 15, question: "enumerate(list, 1) dùng để làm gì?", options: ["Tạo số thứ tự bắt đầu từ 1", "Đảo ngược danh sách", "Xóa phần tử đầu", "Chuyển tên thành số"], correct: 0 },
+            { id: 16, question: "Câu lệnh nào gán giá trị cho biến đúng chuẩn?", options: ["name == \"Tru\"", "name := \"Tru\"", "name = \"Tru\"", "set(name, \"Tru\")"], correct: 2 },
+            { id: 17, question: "Python Shell được mở bằng cách nào?", options: ["Gõ python trong terminal", "Click file python.exe", "Nhập shell.py", "Chạy runpython"], correct: 0 },
+            { id: 18, question: "Khi thụt đầu dòng sai, Python báo lỗi gì?", options: ["SyntaxWrong", "IndentationError", "SpaceFault", "TabMismatch"], correct: 1 },
+            { id: 19, question: "Lệnh while nào đúng cú pháp?", options: ["while x < 5", "while (x < 5) do", "while x < 5:", "do while (x<5)"], correct: 2 },
+            { id: 20, question: "Để ghi vào file và đóng sau khi ghi xong, ta dùng:", options: ["f.open(); f.print();", "open(); write(); stop();", "f = open(...); f.write(...); f.close()", "createfile(); end();"], correct: 2 },
+            { id: 21, question: "Câu lệnh nào KHÔNG phải là lệnh xuất dữ liệu trong Python?", options: ["print()", "format()", "f-string", "output()"], correct: 3 },
+            { id: 22, question: "Khi viết name = input(\"Tên: \"), kiểu dữ liệu nhận được là gì?", options: ["Số nguyên", "Chuỗi", "Tự động nhận dạng", "Kiểu boolean"], correct: 1 },
+            { id: 23, question: "Lệnh nào vừa mở file vừa ghi đè toàn bộ nội dung cũ?", options: ["open(\"file.txt\", \"w\")", "open(\"file.txt\", \"a\")", "open(\"file.txt\", \"r\")", "open(\"file.txt\", \"wa\")"], correct: 0 },
+            { id: 24, question: "Python báo lỗi khi nào?", options: ["Viết print sai chính tả", "Sai thụt dòng", "Thiếu dấu nháy", "Tất cả các lý do trên"], correct: 3 },
+            { id: 25, question: "Trong cấu trúc if–else, phần else được thực thi khi:", options: ["Điều kiện đúng", "Điều kiện sai", "Điều kiện không tồn tại", "Cả 2 tình huống đúng & sai"], correct: 1 },
+            { id: 26, question: "range(3) tạo ra những giá trị nào?", options: ["1, 2, 3", "0, 1, 2", "0, 1, 2, 3", "1, 2"], correct: 1 },
+            { id: 27, question: "Dòng lệnh nào KHÔNG gây lỗi?", options: ["age = int(\"17\")", "age = int(\"mười bảy\")", "age = int(\"17a\")", "age = int(\"\")"], correct: 0 },
+            { id: 28, question: "Khi dùng f-string, cú pháp đúng là:", options: ["f(\"Tên: {a}\")", "f\"Hello {name}\"", "f{'Tuổi: {age}'}", "f<\"Dữ liệu: {x}\">"], correct: 1 },
+            { id: 29, question: "Lệnh nào dùng để tạo hiệu ứng in từng chữ?", options: ["print(char, flush=0)", "print(char, end=\"\", flush=True)", "print(end=\"\", char, True)", "print(flush=\"\")"], correct: 1 },
+            { id: 30, question: "Muốn Python thực thi file tesst.py, ta dùng:", options: ["py run tesst", "python tesst.py", "start tesst", "run.py tesst"], correct: 1 },
+            { id: 31, question: "Câu lệnh nào vừa tạo file mới vừa báo lỗi nếu file đã tồn tại?", options: ["open(\"a.txt\", \"w\")", "open(\"a.txt\", \"x\")", "open(\"a.txt\", \"a\")", "open(\"a.txt\", \"t\")"], correct: 1 },
+            { id: 32, question: "Khi mở Python Shell, dấu nhắc lệnh xuất hiện dưới dạng:", options: [">>>", ":::", "...", "###"], correct: 0 },
+            { id: 33, question: "Trong vòng lặp while, nếu quên tăng giá trị biến, điều gì xảy ra?", options: ["Vòng lặp chạy đúng 1 lần", "Báo lỗi logic", "Vòng lặp vô hạn", "Máy tự sửa và tiếp tục"], correct: 2 },
+            { id: 34, question: "Lệnh nào dùng để chuyển chuỗi sang số nguyên?", options: ["convert(str)", "int()", "number()", "parse()"], correct: 1 },
+            { id: 35, question: "Một biến hợp lệ trong Python KHÔNG được bắt đầu bằng:", options: ["Chữ cái", "Dấu gạch dưới _", "Chữ số", "Ký tự thường"], correct: 2 }
+        ];
+
+        let currentQuestion = 0;
+        let startTime = Date.now();
+        let timerInterval;
+        let questionStartTime = Date.now();
+        let timePerQuestion = [];
+        let userAnswers = {};
+        let shuffledQuestions = [];
+
+        function initializeQuestions() {
+            shuffledQuestions = questions.map(q => {
+                const indices = [0, 1, 2, 3];
+                for (let i = indices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [indices[i], indices[j]] = [indices[j], indices[i]];
+                }
+                
+                const shuffledOptions = indices.map(i => q.options[i]);
+                const newCorrectIndex = indices.indexOf(q.correct);
+                
+                return {
+                    ...q,
+                    options: shuffledOptions,
+                    correct: newCorrectIndex
+                };
+            });
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('timer').textContent = 
+                    String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+            }, 1000);
+        }
+
+        function displayQuestion() {
+            const q = shuffledQuestions[currentQuestion];
+            const userAnswer = userAnswers[currentQuestion];
+            
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            document.getElementById('totalQ').textContent = questions.length;
+            document.getElementById('progress').style.width = 
+                ((currentQuestion) / questions.length) * 100 + '%';
+
+            const quizArea = document.getElementById('quizArea');
+            
+            let optionsHTML = '';
+            for (let idx = 0; idx < q.options.length; idx++) {
+                let classes = 'option';
+                let clickable = true;
+                
+                if (userAnswer !== undefined) {
+                    if (idx === q.correct) {
+                        classes += ' correct';
+                    }
+                    if (userAnswer.wrongAttempts && userAnswer.wrongAttempts.includes(idx)) {
+                        classes += ' wrong';
+                    }
+                    if (userAnswer.correctAnswer !== undefined) {
+                        classes += ' disabled';
+                        clickable = false;
+                    }
+                }
+                
+                const onclickAttr = clickable ? 'onclick="checkAnswer(' + idx + ')"' : '';
+                optionsHTML += '<div class="' + classes + '" ' + onclickAttr + '>';
+                optionsHTML += '<strong>' + String.fromCharCode(65 + idx) + '.</strong> ' + q.options[idx];
+                optionsHTML += '</div>';
+            }
+
+            const isAnswered = userAnswer && userAnswer.correctAnswer !== undefined;
+            const prevDisabled = currentQuestion === 0 ? 'disabled' : '';
+            const nextDisabled = !isAnswered ? 'disabled' : '';
+            
+            quizArea.innerHTML = '<div class="question-container">' +
+                '<div class="question"><strong>Câu ' + (currentQuestion + 1) + ':</strong> ' + q.question + '</div>' +
+                '<div class="options">' + optionsHTML + '</div>' +
+                '<div class="navigation-buttons">' +
+                    '<button class="nav-btn prev" onclick="prevQuestion()" ' + prevDisabled + '>← Quay lại</button>' +
+                    '<button class="nav-btn next" onclick="nextQuestion()" ' + nextDisabled + '>Tiếp tục →</button>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function checkAnswer(selected) {
+            const q = shuffledQuestions[currentQuestion];
+            const userAnswer = userAnswers[currentQuestion] || { wrongAttempts: [] };
+            
+            if (userAnswer.correctAnswer !== undefined) return;
+            if (userAnswer.wrongAttempts.includes(selected)) return;
+            
+            const options = document.querySelectorAll('.option');
+            
+            if (selected === q.correct) {
+                options[selected].classList.add('correct');
+                
+                const questionTime = Math.floor((Date.now() - questionStartTime) / 1000);
+                timePerQuestion[currentQuestion] = questionTime;
+                
+                userAnswers[currentQuestion] = {
+                    ...userAnswer,
+                    correctAnswer: selected
+                };
+                
+                options.forEach(opt => opt.classList.add('disabled'));
+                
+                const nextBtn = document.querySelector('.nav-btn.next');
+                nextBtn.disabled = false;
+                
+            } else {
+                options[selected].classList.add('wrong');
+                userAnswer.wrongAttempts.push(selected);
+                userAnswers[currentQuestion] = userAnswer;
+                
+                options[selected].style.pointerEvents = 'none';
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                questionStartTime = Date.now();
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        async function showResults() {
+            clearInterval(timerInterval);
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+
+            const validTimes = timePerQuestion.filter(t => t !== undefined);
+            const avgTime = validTimes.length > 0 ? Math.floor(validTimes.reduce((a, b) => a + b, 0) / validTimes.length) : 0;
+            const fastestTime = validTimes.length > 0 ? Math.min(...validTimes) : 0;
+            const slowestTime = validTimes.length > 0 ? Math.max(...validTimes) : 0;
+
+            // Save result to server
+            try {
+                const token = localStorage.getItem('token');
+                await fetch('/api/save-result', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        totalTime,
+                        avgTime,
+                        fastestTime,
+                        slowestTime
+                    })
+                });
+            } catch (error) {
+                console.error('Error saving result:', error);
+            }
+
+            document.getElementById('stats').style.display = 'none';
+            document.querySelector('.progress-bar').style.display = 'none';
+            
+            document.getElementById('quizArea').innerHTML = 
+                '<div class="result-screen">' +
+                    '<div class="trophy">🏆</div>' +
+                    '<h2 style="font-size: 2em; margin-bottom: 10px; color: #333;">Chúc mừng!</h2>' +
+                    '<p style="font-size: 1.2em; color: #666; margin-bottom: 30px;">Bạn đã hoàn thành bài trắc nghiệm</p>' +
+                    '<div class="timer-circle">' +
+                        '<div class="timer-inner">' +
+                            '<span style="color: #7e22ce;">' + minutes + ':' + String(seconds).padStart(2, '0') + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="background: #f5f7fa; padding: 30px; border-radius: 20px; margin: 20px 0;">' +
+                        '<h3 style="color: #7e22ce; margin-bottom: 20px;">📊 Thống kê chi tiết</h3>' +
+                        '<div style="display: grid; gap: 15px; text-align: left;">' +
+                            '<div style="padding: 15px; background: white; border-radius: 10px;">' +
+                                '<strong>⏱️ Tổng thời gian:</strong> ' + minutes + ' phút ' + seconds + ' giây' +
+                            '</div>' +
+                            '<div style="padding: 15px; background: white; border-radius: 10px;">' +
+                                '<strong>📈 Thời gian trung bình/câu:</strong> ' + avgTime + ' giây' +
+                            '</div>' +
+                            '<div style="padding: 15px; background: white; border-radius: 10px;">' +
+                                '<strong>⚡ Câu nhanh nhất:</strong> ' + fastestTime + ' giây' +
+                            '</div>' +
+                            '<div style="padding: 15px; background: white; border-radius: 10px;">' +
+                                '<strong>🐢 Câu chậm nhất:</strong> ' + slowestTime + ' giây' +
+                            '</div>' +
+                            '<div style="padding: 15px; background: white; border-radius: 10px;">' +
+                                '<strong>✅ Tổng số câu:</strong> ' + questions.length + ' câu' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button class="restart-btn" onclick="location.reload()">🔄 Làm lại bài test</button>' +
+                    '<button class="restart-btn" onclick="logout()">🚪 Đăng xuất</button>' +
+                '</div>';
+        }
+
+        // Fullscreen functionality (triggered by F11 or browser fullscreen)
+        document.addEventListener('fullscreenchange', function() {
+            if (document.fullscreenElement) {
+                document.getElementById('stats').classList.add('hidden');
+                document.body.classList.add('fullscreen-mode');
+            } else {
+                document.getElementById('stats').classList.remove('hidden');
+                document.body.classList.remove('fullscreen-mode');
+            }
+        });
+
+        async function logout() {
+            const token = localStorage.getItem('token');
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = '/';
+        }
+
+        // Check authentication
+        window.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+
+            if (!token) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                document.getElementById('username').textContent = username;
+                initializeQuestions();
+                displayQuestion();
+                startTimer();
+            } catch (error) {
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>
