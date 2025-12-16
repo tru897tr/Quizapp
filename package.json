@@ -1,7 +1,7 @@
 {
-  "name": "quiz-master",
-  "version": "3.0.0",
-  "description": "Tạo trò chơi câu hỏi trắc nghiệm dành cho bạn",
+  "name": "quiz-master-final",
+  "version": "3.2.0",
+  "description": "Quiz Master với Discord webhook debug",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,9 +13,6 @@
     "cookie-parser": "^1.4.6",
     "nodemailer": "^6.9.7",
     "dotenv": "^16.3.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=14.0.0"
