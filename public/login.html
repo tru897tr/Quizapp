@@ -1,86 +1,86 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Quiz Master</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/auth.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng nhập - Quiz Master</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/auth.css">
 </head>
 <body class="auth-page">
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <a href="/" class="logo">
-                    <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
-                        <rect width="32" height="32" rx="8" fill="#6366f1"/>
-                        <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
-                    </svg>
-                </a>
-                <h1>Chào mừng trở lại</h1>
-                <p>Đăng nhập để tiếp tục</p>
-            </div>
-            <div class="tabs">
-                <button class="tab active" data-tab="login">Đăng nhập</button>
-                <button class="tab" data-tab="register">Đăng ký</button>
-            </div>
-            <div id="message" class="message"></div>
-            <form id="loginForm" class="auth-form active">
-                <div class="form-group">
-                    <label class="form-label">Tên đăng nhập</label>
-                    <input type="text" class="form-input" name="username" required autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-input" name="password" required autocomplete="current-password">
-                </div>
-                <div class="form-footer">
-                    <button type="button" class="link-button" onclick="showForgotPassword()">Quên mật khẩu?</button>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
-            </form>
-            <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label class="form-label">Họ và tên</label>
-                    <input type="text" class="form-input" name="fullname" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tên đăng nhập</label>
-                    <input type="text" class="form-input" name="username" minlength="3" required autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" class="form-input" name="password" minlength="6" required autocomplete="new-password">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
-            </form>
-            <div class="auth-footer">
-                <a href="/" class="link-button">← Về trang chủ</a>
-            </div>
-        </div>
-    </div>
-    <div id="forgotPasswordModal" class="modal-overlay" style="display:none;">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 class="modal-title">Quên mật khẩu</h2>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom:20px;color:var(--gray);">Nhập email đăng ký của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu.</p>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" id="forgotEmail" class="form-input" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideForgotPassword()">Hủy</button>
-                <button class="btn btn-primary" onclick="submitForgotPassword()">Gửi</button>
-            </div>
-        </div>
-    </div>
-    <script src="/js/auth.js"></script>
+<div class="auth-container">
+<div class="auth-card">
+<div class="auth-header">
+<a href="/" class="logo">
+<svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+<rect width="32" height="32" rx="8" fill="#6366f1"/>
+<path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+</svg>
+</a>
+<h1>Chào mừng trở lại</h1>
+<p>Đăng nhập để tiếp tục</p>
+</div>
+<div class="tabs">
+<button class="tab active" data-tab="login">Đăng nhập</button>
+<button class="tab" data-tab="register">Đăng ký</button>
+</div>
+<div id="message" class="message"></div>
+<form id="loginForm" class="auth-form active">
+<div class="form-group">
+<label class="form-label">Tên đăng nhập</label>
+<input type="text" class="form-input" name="username" required>
+</div>
+<div class="form-group">
+<label class="form-label">Mật khẩu</label>
+<input type="password" class="form-input" name="password" required>
+</div>
+<div class="form-footer">
+<button type="button" class="link-button" onclick="showForgotPassword()">Quên mật khẩu?</button>
+</div>
+<button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+</form>
+<form id="registerForm" class="auth-form">
+<div class="form-group">
+<label class="form-label">Họ và tên</label>
+<input type="text" class="form-input" name="fullname" required>
+</div>
+<div class="form-group">
+<label class="form-label">Email</label>
+<input type="email" class="form-input" name="email" required>
+</div>
+<div class="form-group">
+<label class="form-label">Tên đăng nhập</label>
+<input type="text" class="form-input" name="username" minlength="3" required>
+</div>
+<div class="form-group">
+<label class="form-label">Mật khẩu</label>
+<input type="password" class="form-input" name="password" minlength="6" required>
+</div>
+<button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
+</form>
+<div class="auth-footer">
+<a href="/" class="link-button">← Về trang chủ</a>
+</div>
+</div>
+</div>
+<div id="forgotPasswordModal" class="modal-overlay" style="display:none;">
+<div class="modal">
+<div class="modal-header">
+<h2 class="modal-title">Quên mật khẩu</h2>
+</div>
+<div class="modal-body">
+<p style="margin-bottom:20px;color:var(--gray);">Nhập email đăng ký của bạn. Link đặt lại mật khẩu sẽ có hiệu lực trong 5 phút.</p>
+<div class="form-group">
+<label class="form-label">Email</label>
+<input type="email" id="forgotEmail" class="form-input" required>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" onclick="hideForgotPassword()">Hủy</button>
+<button class="btn btn-primary" onclick="submitForgotPassword()">Gửi</button>
+</div>
+</div>
+</div>
+<script src="/js/auth.js"></script>
 </body>
 </html>

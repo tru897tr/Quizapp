@@ -1,105 +1,97 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master - Trang chủ</title>
-    <link rel="stylesheet" href="/css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Master - Trang chủ</title>
+<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">Menu</div>
-            <button class="close-sidebar" onclick="closeSidebar()">✕</button>
-        </div>
-        <div class="sidebar-menu">
-            <a href="/" onclick="closeSidebar()">🏠 Trang chủ</a>
-            <a href="/quiz" onclick="closeSidebar()">📝 Làm câu hỏi</a>
-            <a href="/login" onclick="closeSidebar()" id="sidebarLogin">🔐 Đăng nhập</a>
-            <a href="#" onclick="logout(); return false;" style="display:none;" id="sidebarLogout">🚪 Đăng xuất</a>
-        </div>
-    </div>
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <button class="menu-toggle" onclick="openSidebar()">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <a href="/" class="logo">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <rect width="32" height="32" rx="8" fill="#6366f1"/>
-                        <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
-                    </svg>
-                    <span>Quiz Master</span>
-                </a>
-                <div id="userMenu"></div>
-            </div>
-        </div>
-    </header>
-
-    <section class="hero animate-fade-in">
-        <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title">Tạo trò chơi câu hỏi trắc nghiệm dành cho chính bạn</h1>
-                <p class="hero-subtitle">Học tập thông minh, theo dõi tiến độ và cạnh tranh với bạn bè</p>
-                <div class="hero-buttons">
-                    <button class="btn btn-primary" onclick="startQuiz()">Bắt đầu ngay</button>
-                    <button class="btn btn-secondary" onclick="showLeaderboard()">Bảng xếp hạng</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="features">
-        <div class="container">
-            <h2 class="section-title">Tính năng nổi bật</h2>
-            <div class="features-grid">
-                <div class="feature-card animate-slide-left">
-                    <div class="feature-icon">📊</div>
-                    <h3>Theo dõi tiến độ</h3>
-                    <p>Xem lịch sử làm bài và thống kê chi tiết về thời gian hoàn thành</p>
-                </div>
-                <div class="feature-card animate-slide-left" style="animation-delay: 0.1s;">
-                    <div class="feature-icon">🏆</div>
-                    <h3>Bảng xếp hạng</h3>
-                    <p>Cạnh tranh với người dùng khác và leo lên top đầu</p>
-                </div>
-                <div class="feature-card animate-slide-left" style="animation-delay: 0.2s;">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Câu hỏi chất lượng</h3>
-                    <p>35 câu hỏi được biên soạn kỹ lưỡng về Python cơ bản</p>
-                </div>
-                <div class="feature-card animate-slide-left" style="animation-delay: 0.3s;">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Kết quả tức thì</h3>
-                    <p>Nhận phản hồi ngay lập tức sau mỗi câu trả lời</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="leaderboard-section" id="leaderboardSection" style="display: none;">
-        <div class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
-                <h2 class="section-title" style="margin-bottom: 0;">🏆 Bảng xếp hạng</h2>
-                <button class="btn btn-secondary" onclick="hideLeaderboard()">Đóng</button>
-            </div>
-            <div id="leaderboardContent">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 Quiz Master - Tạo trò chơi câu hỏi trắc nghiệm dành cho bạn</p>
-        </div>
-    </footer>
-
-    <script src="/js/home.js"></script>
+<div class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-title">Menu</div>
+<button class="close-sidebar" onclick="closeSidebar()">✕</button>
+</div>
+<div class="sidebar-menu">
+<a href="/">🏠 Trang chủ</a>
+<a href="/quiz">📝 Làm câu hỏi</a>
+<a href="/login" id="sidebarLogin">🔐 Đăng nhập</a>
+<a href="#" onclick="logout(); return false;" style="display:none;" id="sidebarLogout">🚪 Đăng xuất</a>
+</div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<header class="header">
+<div class="container">
+<div class="header-content">
+<button class="menu-toggle" onclick="openSidebar()">
+<span></span><span></span><span></span>
+</button>
+<a href="/" class="logo">
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+<rect width="32" height="32" rx="8" fill="#6366f1"/>
+<path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+</svg>
+<span>Quiz Master</span>
+</a>
+<div id="userMenu"></div>
+</div>
+</div>
+</header>
+<section class="hero">
+<div class="container">
+<div class="hero-content">
+<h1 class="hero-title">Tạo trò chơi câu hỏi trắc nghiệm dành cho chính bạn</h1>
+<p class="hero-subtitle">Học tập thông minh, theo dõi tiến độ và cạnh tranh với bạn bè</p>
+<div class="hero-buttons">
+<button class="btn btn-primary" onclick="startQuiz()">Bắt đầu ngay</button>
+<button class="btn btn-secondary" onclick="showLeaderboard()">Bảng xếp hạng</button>
+</div>
+</div>
+</div>
+</section>
+<section class="features">
+<div class="container">
+<h2 class="section-title">Tính năng nổi bật</h2>
+<div class="features-grid">
+<div class="feature-card">
+<div class="feature-icon">📊</div>
+<h3>Theo dõi tiến độ</h3>
+<p>Xem lịch sử làm bài và thống kê chi tiết về thời gian hoàn thành</p>
+</div>
+<div class="feature-card">
+<div class="feature-icon">🏆</div>
+<h3>Bảng xếp hạng</h3>
+<p>Cạnh tranh với người dùng khác và leo lên top đầu</p>
+</div>
+<div class="feature-card">
+<div class="feature-icon">🎯</div>
+<h3>Câu hỏi chất lượng</h3>
+<p>35 câu hỏi được biên soạn kỹ lưỡng về Python cơ bản</p>
+</div>
+<div class="feature-card">
+<div class="feature-icon">⚡</div>
+<h3>Kết quả tức thì</h3>
+<p>Nhận phản hồi ngay lập tức sau mỗi câu trả lời</p>
+</div>
+</div>
+</div>
+</section>
+<section class="leaderboard-section" id="leaderboardSection" style="display:none;">
+<div class="container">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;">
+<h2 class="section-title" style="margin-bottom:0;">🏆 Bảng xếp hạng</h2>
+<button class="btn btn-secondary" onclick="hideLeaderboard()">Đóng</button>
+</div>
+<div id="leaderboardContent">
+<div class="loading"><div class="spinner"></div></div>
+</div>
+</div>
+</section>
+<footer class="footer">
+<div class="container">
+<p>&copy; 2024 Quiz Master - Tạo trò chơi câu hỏi trắc nghiệm dành cho bạn</p>
+</div>
+</footer>
+<script src="/js/home.js"></script>
 </body>
 </html>
