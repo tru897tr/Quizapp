@@ -4,21 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz - Quiz Master</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/quiz.css">
 </head>
 <body>
     <div class="quiz-container">
         <div class="quiz-header">
-            <div class="quiz-logo">Quiz Master</div>
+            <a href="/" class="quiz-logo">Quiz Master</a>
             <div class="quiz-user">
                 <span id="username"></span>
-                <button class="btn-icon" onclick="toggleFullscreen()" title="Toàn màn hình">⛶</button>
-                <button class="btn-icon" onclick="quit()">✕</button>
+                <button class="btn-icon" onclick="toggleFullscreen()" title="Toàn màn hình (F11)">⛶</button>
+                <button class="btn-icon" onclick="quit()" title="Thoát">✕</button>
             </div>
         </div>
-
         <div id="quizStats" class="quiz-stats">
             <div class="stat-card">
                 <div class="stat-label">Câu hỏi</div>
@@ -29,14 +27,12 @@
                 <div class="stat-value" id="timer">00:00</div>
             </div>
         </div>
-
         <div class="progress-bar">
             <div class="progress-fill" id="progress"></div>
         </div>
-
         <div id="quizArea"></div>
     </div>
-
+    <button class="fullscreen-exit-btn" onclick="exitFullscreen()" title="Thoát toàn màn hình (ESC)">✕</button>
     <script src="/js/quiz.js"></script>
 </body>
 </html>
