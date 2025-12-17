@@ -1,1 +1,52 @@
-function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('show');document.body.classList.add('no-scroll')}function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('show');document.body.classList.remove('no-scroll')}async function checkAuth(){try{const res=await fetch('/api/verify');if(res.ok){const data=await res.json();showUserMenu(data.user.username);document.getElementById('sidebarLogin').style.display='none';document.getElementById('sidebarLogout').style.display='flex'}else{showLoginButton();document.getElementById('sidebarLogin').style.display='flex';document.getElementById('sidebarLogout').style.display='none'}}catch(err){showLoginButton()}}function showUserMenu(username){const menu=document.getElementById('userMenu');menu.innerHTML='<div class="user-info"><span>👤 '+username+'</span></div><button class="btn btn-secondary" onclick="logout()" style="padding:11px 22px;">Đăng xuất</button>'}function showLoginButton(){const menu=document.getElementById('userMenu');menu.innerHTML='<a href="/login" class="btn btn-primary">Đăng nhập</a>'}async function startQuiz(){try{const res=await fetch('/api/verify');if(res.ok){window.location.href='/quiz'}else{window.location.href='/login'}}catch(err){window.location.href='/login'}}function showLeaderboard(){document.getElementById('leaderboardSection').style.display='block';loadLeaderboard();document.getElementById('leaderboardSection').scrollIntoView({behavior:'smooth'})}function hideLeaderboard(){document.getElementById('leaderboardSection').style.display='none'}async function loadLeaderboard(){const content=document.getElementById('leaderboardContent');content.innerHTML='<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>';try{const res=await fetch('/api/leaderboard');const data=await res.json();if(data.success&&data.leaderboard.length>0){let html='<div class="leaderboard-list">';data.leaderboard.forEach((item,index)=>{const rank=index+1;let rankClass='';if(rank===1)rankClass='gold';else if(rank===2)rankClass='silver';else if(rank===3)rankClass='bronze';const minutes=Math.floor(item.totalTime/60);const seconds=item.totalTime%60;html+='<div class="leaderboard-item"><div class="leaderboard-rank '+rankClass+'">#'+rank+'</div><div class="leaderboard-user">'+item.username+'</div><div class="leaderboard-time">'+minutes+':'+String(seconds).padStart(2,'0')+'</div></div>'});html+='</div>';content.innerHTML=html}else{content.innerHTML='<div class="loading" style="color:var(--gray);">Chưa có dữ liệu</div>'}}catch(error){content.innerHTML='<div class="loading" style="color:var(--danger);">Lỗi tải dữ liệu</div>'}}async function logout(){if(confirm('Bạn có chắc muốn đăng xuất?')){try{await fetch('/api/logout',{method:'POST'})}catch(err){}window.location.href='/'}}window.addEventListener('DOMContentLoaded',checkAuth);
+function openSidebar(){
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    document.body.classList.add('no-scroll');
+}
+
+function closeSidebar(){
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+}
+
+async function checkAuth(){
+    try{
+        const res = await fetch('/api/verify');
+        if(res.ok){
+            const data = await res.json();
+            showUserMenu(data.user.username);
+            document.getElementById('sidebarLogin').style.display = 'none';
+        }else{
+            showLoginButton();
+            document.getElementById('sidebarLogin').style.display = 'flex';
+        }
+    }catch(err){
+        showLoginButton();
+    }
+}
+
+function showUserMenu(username){
+    const menu = document.getElementById('userMenu');
+    menu.innerHTML = '<div class="user-info"><span>👤 ' + username + '</span></div><button class="btn btn-secondary" onclick="logout()" style="padding:11px 22px;">Đăng xuất</button>';
+}
+
+function showLoginButton(){
+    const menu = document.getElementById('userMenu');
+    menu.innerHTML = '<a href="/login" class="btn btn-primary">Đăng nhập</a>';
+}
+
+async function logout(){
+    if(confirm('Bạn có chắc muốn đăng xuất?')){
+        try{
+            await fetch('/api/logout', {method:'POST'});
+        }catch(err){}
+        window.location.href = '/';
+    }
+}
+
+window.addEventListener('DOMContentLoaded', checkAuth);
