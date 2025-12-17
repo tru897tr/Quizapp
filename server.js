@@ -21,6 +21,7 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const RESULTS_FILE = path.join(DATA_DIR, 'results.json');
 const RESET_TOKENS_FILE = path.join(DATA_DIR, 'reset_tokens.json');
+const QUIZZES_FILE = path.join(DATA_DIR, 'quizzes.json');
 
 async function sendDiscordLog(message, data = null) {
     if (!DISCORD_WEBHOOK || !DEBUG) return;
@@ -79,7 +80,8 @@ async function ensureDataDir() {
             { path: USERS_FILE, default: {} },
             { path: SESSIONS_FILE, default: {} },
             { path: RESULTS_FILE, default: [] },
-            { path: RESET_TOKENS_FILE, default: {} }
+            { path: RESET_TOKENS_FILE, default: {} },
+            { path: QUIZZES_FILE, default: { nextId: 1, quizzes: {} } }
         ];
         for (const file of files) {
             try {
@@ -143,32 +145,6 @@ async function authenticate(req, res, next) {
     req.token = token;
     next();
 }
-
-app.get('/api/debug', async (req, res) => {
-    if (!DEBUG) return res.status(403).json({ error: 'Debug mode is disabled' });
-    const users = await readJSON(USERS_FILE, {});
-    const sessions = await readJSON(SESSIONS_FILE, {});
-    const results = await readJSON(RESULTS_FILE, []);
-    const resetTokens = await readJSON(RESET_TOKENS_FILE, {});
-    const debugInfo = {
-        users: Object.keys(users).map(u => ({
-            username: u,
-            email: users[u].email,
-            id: users[u].id
-        })),
-        sessionsCount: Object.keys(sessions).length,
-        resultsCount: results.length,
-        resetTokensCount: Object.keys(resetTokens).length,
-        env: {
-            emailConfigured: !!process.env.EMAIL_USER,
-            emailUser: process.env.EMAIL_USER || 'not set',
-            baseUrl: process.env.BASE_URL || 'http://localhost:' + PORT,
-            discordWebhook: !!DISCORD_WEBHOOK
-        }
-    };
-    await sendDiscordLog('📊 Debug info requested');
-    res.json(debugInfo);
-});
 
 app.post('/api/register', async (req, res) => {
     try {
@@ -248,7 +224,6 @@ app.post('/api/login', async (req, res) => {
         res.json({
             success: true,
             token,
-            loginUrl: '/oauth/login/' + token,
             user: { username: user.username, fullname: user.fullname }
         });
     } catch (error) {
@@ -259,7 +234,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.get('/api/verify', authenticate, async (req, res) => {
-    res.json({ success: true, user: { username: req.username } });
+    res.json({ success: true, user: { username: req.username, userId: req.userId } });
 });
 
 app.post('/api/logout', authenticate, async (req, res) => {
@@ -376,12 +351,288 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
+// ==================== QUIZ MANAGEMENT APIs ====================
+
+app.post('/api/quiz/create', authenticate, async (req, res) => {
+    try {
+        const { title, questions, isPublic } = req.body;
+        
+        if (!title || !title.trim()) {
+            return res.status(400).json({ error: 'Vui lòng nhập tiêu đề' });
+        }
+        
+        if (!questions || !Array.isArray(questions) || questions.length === 0) {
+            return res.status(400).json({ error: 'Vui lòng thêm ít nhất một câu hỏi' });
+        }
+        
+        // Validate questions
+        for (let i = 0; i < questions.length; i++) {
+            const q = questions[i];
+            if (!q.question || !q.question.trim()) {
+                return res.status(400).json({ error: `Câu hỏi ${i + 1}: Vui lòng nhập nội dung câu hỏi` });
+            }
+            if (!q.options || q.options.length < 2) {
+                return res.status(400).json({ error: `Câu hỏi ${i + 1}: Cần ít nhất 2 đáp án` });
+            }
+            for (let j = 0; j < q.options.length; j++) {
+                if (!q.options[j].text || !q.options[j].text.trim()) {
+                    return res.status(400).json({ error: `Câu hỏi ${i + 1}: Đáp án ${String.fromCharCode(65 + j)} không được để trống` });
+                }
+            }
+            const correctCount = q.options.filter(o => o.isCorrect).length;
+            if (correctCount !== 1) {
+                return res.status(400).json({ error: `Câu hỏi ${i + 1}: Phải chọn đúng 1 đáp án đúng` });
+            }
+        }
+        
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const quizId = quizzesData.nextId;
+        
+        const quiz = {
+            id: quizId,
+            title: title.trim(),
+            author: req.username,
+            authorId: req.userId,
+            questions: questions,
+            isPublic: isPublic === true,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+        
+        quizzesData.quizzes[quizId] = quiz;
+        quizzesData.nextId = quizId + 1;
+        
+        await writeJSON(QUIZZES_FILE, quizzesData);
+        await sendDiscordLog('✅ Quiz created', { quizId, title, author: req.username });
+        
+        res.json({ success: true, quizId, message: 'Tạo quiz thành công!' });
+    } catch (error) {
+        console.error('Create quiz error:', error);
+        await sendDiscordLog('❌ Create quiz error', { error: error.message });
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.get('/api/quiz/my-activities', authenticate, async (req, res) => {
+    try {
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const myQuizzes = Object.values(quizzesData.quizzes)
+            .filter(q => q.authorId === req.userId)
+            .sort((a, b) => b.createdAt - a.createdAt)
+            .map(q => ({
+                id: q.id,
+                title: q.title,
+                questionCount: q.questions.length,
+                isPublic: q.isPublic,
+                createdAt: q.createdAt,
+                updatedAt: q.updatedAt
+            }));
+        
+        res.json({ success: true, quizzes: myQuizzes });
+    } catch (error) {
+        console.error('Get my activities error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.get('/api/quiz/:id', async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id);
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const quiz = quizzesData.quizzes[quizId];
+        
+        if (!quiz) {
+            return res.status(404).json({ error: 'Không tìm thấy quiz' });
+        }
+        
+        // Check authentication
+        const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
+        const sessions = await readJSON(SESSIONS_FILE, {});
+        const session = token ? sessions[token] : null;
+        const isOwner = session && session.userId === quiz.authorId;
+        
+        if (!quiz.isPublic && !isOwner) {
+            return res.status(404).json({ error: 'Không tìm thấy quiz' });
+        }
+        
+        // Return quiz without showing correct answers
+        const safeQuiz = {
+            id: quiz.id,
+            title: quiz.title,
+            author: quiz.author,
+            questionCount: quiz.questions.length,
+            isPublic: quiz.isPublic,
+            isOwner: isOwner,
+            questions: quiz.questions.map((q, idx) => ({
+                index: idx,
+                question: q.question,
+                options: q.options.map(o => ({ text: o.text }))
+            }))
+        };
+        
+        res.json({ success: true, quiz: safeQuiz });
+    } catch (error) {
+        console.error('Get quiz error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.post('/api/quiz/:id/check-answer', async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id);
+        const { questionIndex, selectedOption } = req.body;
+        
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const quiz = quizzesData.quizzes[quizId];
+        
+        if (!quiz) {
+            return res.status(404).json({ error: 'Không tìm thấy quiz' });
+        }
+        
+        const question = quiz.questions[questionIndex];
+        if (!question) {
+            return res.status(400).json({ error: 'Câu hỏi không hợp lệ' });
+        }
+        
+        const isCorrect = question.options[selectedOption]?.isCorrect === true;
+        const correctIndex = question.options.findIndex(o => o.isCorrect);
+        
+        res.json({ 
+            success: true, 
+            isCorrect,
+            correctIndex
+        });
+    } catch (error) {
+        console.error('Check answer error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.put('/api/quiz/:id', authenticate, async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id);
+        const { title, questions, isPublic } = req.body;
+        
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const quiz = quizzesData.quizzes[quizId];
+        
+        if (!quiz) {
+            return res.status(404).json({ error: 'Không tìm thấy quiz' });
+        }
+        
+        if (quiz.authorId !== req.userId) {
+            return res.status(403).json({ error: 'Bạn không có quyền chỉnh sửa quiz này' });
+        }
+        
+        if (!title || !title.trim()) {
+            return res.status(400).json({ error: 'Vui lòng nhập tiêu đề' });
+        }
+        
+        if (questions && Array.isArray(questions)) {
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
+                if (!q.question || !q.question.trim()) {
+                    return res.status(400).json({ error: `Câu hỏi ${i + 1}: Vui lòng nhập nội dung câu hỏi` });
+                }
+                if (!q.options || q.options.length < 2) {
+                    return res.status(400).json({ error: `Câu hỏi ${i + 1}: Cần ít nhất 2 đáp án` });
+                }
+                const correctCount = q.options.filter(o => o.isCorrect).length;
+                if (correctCount !== 1) {
+                    return res.status(400).json({ error: `Câu hỏi ${i + 1}: Phải chọn đúng 1 đáp án đúng` });
+                }
+            }
+        }
+        
+        quiz.title = title.trim();
+        if (questions) quiz.questions = questions;
+        if (typeof isPublic === 'boolean') quiz.isPublic = isPublic;
+        quiz.updatedAt = Date.now();
+        
+        quizzesData.quizzes[quizId] = quiz;
+        await writeJSON(QUIZZES_FILE, quizzesData);
+        
+        await sendDiscordLog('✅ Quiz updated', { quizId, title });
+        
+        res.json({ success: true, message: 'Cập nhật quiz thành công!' });
+    } catch (error) {
+        console.error('Update quiz error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.delete('/api/quiz/:id', authenticate, async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id);
+        
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const quiz = quizzesData.quizzes[quizId];
+        
+        if (!quiz) {
+            return res.status(404).json({ error: 'Không tìm thấy quiz' });
+        }
+        
+        if (quiz.authorId !== req.userId) {
+            return res.status(403).json({ error: 'Bạn không có quyền xóa quiz này' });
+        }
+        
+        delete quizzesData.quizzes[quizId];
+        await writeJSON(QUIZZES_FILE, quizzesData);
+        
+        await sendDiscordLog('🗑️ Quiz deleted', { quizId, title: quiz.title });
+        
+        res.json({ success: true, message: 'Xóa quiz thành công!' });
+    } catch (error) {
+        console.error('Delete quiz error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.post('/api/quiz/:id/duplicate', authenticate, async (req, res) => {
+    try {
+        const quizId = parseInt(req.params.id);
+        
+        const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
+        const originalQuiz = quizzesData.quizzes[quizId];
+        
+        if (!originalQuiz) {
+            return res.status(404).json({ error: 'Không tìm thấy quiz' });
+        }
+        
+        if (originalQuiz.authorId !== req.userId) {
+            return res.status(403).json({ error: 'Bạn không có quyền nhân đôi quiz này' });
+        }
+        
+        const newQuizId = quizzesData.nextId;
+        const newQuiz = {
+            ...originalQuiz,
+            id: newQuizId,
+            title: originalQuiz.title + ' (Bản sao)',
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+        
+        quizzesData.quizzes[newQuizId] = newQuiz;
+        quizzesData.nextId = newQuizId + 1;
+        
+        await writeJSON(QUIZZES_FILE, quizzesData);
+        
+        await sendDiscordLog('✅ Quiz duplicated', { originalId: quizId, newId: newQuizId });
+        
+        res.json({ success: true, quizId: newQuizId, message: 'Nhân đôi quiz thành công!' });
+    } catch (error) {
+        console.error('Duplicate quiz error:', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
 app.post('/api/save-result', authenticate, async (req, res) => {
     try {
-        const { totalTime, avgTime, fastestTime, slowestTime } = req.body;
+        const { quizId, totalTime, avgTime, fastestTime, slowestTime } = req.body;
         const results = await readJSON(RESULTS_FILE, []);
         results.push({
             username: req.username,
+            quizId: quizId || 'default',
             totalTime,
             avgTime,
             fastestTime,
@@ -389,7 +640,7 @@ app.post('/api/save-result', authenticate, async (req, res) => {
             completedAt: Date.now()
         });
         await writeJSON(RESULTS_FILE, results);
-        await sendDiscordLog('🎯 Quiz completed', { username: req.username });
+        await sendDiscordLog('🎯 Quiz completed', { username: req.username, quizId });
         res.json({ success: true });
     } catch (error) {
         console.error('Save result error:', error);
@@ -427,6 +678,8 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
+// ==================== ROUTES ====================
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
@@ -452,8 +705,24 @@ app.get('/oauth/login/:token', async (req, res) => {
     }
 });
 
-app.get('/quiz', (req, res) => {
+app.get('/create', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'create.html'));
+});
+
+app.get('/myactivities', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'myactivities.html'));
+});
+
+app.get('/create/edit/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'edit.html'));
+});
+
+app.get('/quiz/:id/:title?', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'quiz.html'));
+});
+
+app.get('/share/quiz/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'share.html'));
 });
 
 app.get('/oauth/resetpassword/:token', (req, res) => {
@@ -484,7 +753,6 @@ async function startServer() {
         console.log('🚀 Server: http://localhost:' + PORT);
         console.log('🐛 Debug: ' + (DEBUG ? 'ON' : 'OFF'));
         console.log('📊 Discord webhook: ' + (DISCORD_WEBHOOK ? 'Configured ✓' : 'Not configured'));
-        if (DEBUG) console.log('   Debug endpoint: http://localhost:' + PORT + '/api/debug');
     });
 }
 

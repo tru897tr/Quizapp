@@ -1,7 +1,7 @@
 {
-  "name": "quiz-master-v3.4.0",
-  "version": "3.4.0",
-  "description": "Quiz Master với hiệu ứng mượt mà",
+  "name": "quiz-master-v4",
+  "version": "4.0.0",
+  "description": "Quiz Master với tính năng tạo câu hỏi tùy chỉnh",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
