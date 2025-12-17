@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cài đặt - Quiz Master</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/toast.css">
+<style>
+.settings-container{min-height:100vh;background:linear-gradient(180deg,#f8fafc,#f1f5f9);padding-bottom:40px}
+.settings-header{background:rgba(255,255,255,0.98);padding:16px 0;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.05);position:sticky;top:0;z-index:100}
+.settings-header .container{display:flex;justify-content:space-between;align-items:center}
+.settings-content{max-width:900px;margin:40px auto;padding:0 24px}
+.settings-title{font-size:32px;font-weight:800;margin-bottom:32px;background:linear-gradient(135deg,var(--dark),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.settings-section{background:var(--white);border-radius:16px;padding:32px;margin-bottom:24px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.section-title{font-size:20px;font-weight:700;margin-bottom:24px;color:var(--dark)}
+.setting-item{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--light-gray)}
+.setting-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.setting-label{font-weight:600;margin-bottom:8px;color:var(--dark);font-size:15px}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:12px}
+.theme-option{padding:20px;border:2px solid var(--border);border-radius:12px;text-align:center;cursor:pointer;transition:all 0.2s ease;font-weight:600}
+.theme-option:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.theme-option.active{border-color:var(--primary);background:rgba(99,102,241,0.05)}
+.theme-light{background:linear-gradient(135deg,#fff,#f8fafc)}
+.theme-dark{background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff}
+.theme-yellow{background:linear-gradient(135deg,#fef3c7,#fde047)}
+.theme-blue{background:linear-gradient(135deg,#dbeafe,#93c5fd)}
+</style>
+</head>
+<body>
+<div class="settings-container">
+<div class="settings-header">
+<div class="container">
+<a href="/" class="logo">
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+<rect width="32" height="32" rx="8" fill="#6366f1"/>
+<path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+</svg>
+<span>Quiz Master</span>
+</a>
+<span id="userDisplay" style="font-weight:600;color:var(--dark)"></span>
+</div>
+</div>
+<div class="settings-content">
+<h1 class="settings-title">⚙️ Cài đặt</h1>
+<div class="settings-section">
+<h2 class="section-title">🎨 Giao diện</h2>
+<div class="setting-item">
+<div class="setting-label">Chủ đề màu sắc</div>
+<div class="theme-grid">
+<div class="theme-option theme-light active" onclick="setTheme('light')">☀️ Sáng</div>
+<div class="theme-option theme-dark" onclick="setTheme('dark')">🌙 Tối</div>
+<div class="theme-option theme-yellow" onclick="setTheme('yellow')">🌻 Vàng</div>
+<div class="theme-option theme-blue" onclick="setTheme('blue')">🌊 Xanh</div>
+</div>
+</div>
+</div>
+<div class="settings-section">
+<h2 class="section-title">💾 Dữ liệu</h2>
+<div class="setting-item">
+<div class="setting-label">Xuất dữ liệu</div>
+<button class="btn btn-primary" onclick="exportData()" style="margin-top:8px">📥 Tải dữ liệu về</button>
+</div>
+<div class="setting-item">
+<div class="setting-label">Nhập dữ liệu</div>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData()">
+<button class="btn btn-secondary" onclick="document.getElementById('importFile').click()" style="margin-top:8px">📤 Chọn file dữ liệu</button>
+</div>
+</div>
+<div class="settings-section">
+<h2 class="section-title">👤 Tài khoản</h2>
+<div class="setting-item">
+<button class="btn btn-danger" onclick="logout()">🚪 Đăng xuất</button>
+</div>
+</div>
+</div>
+</div>
+<script src="/js/toast.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded',async()=>{try{const res=await fetch('/api/verify');if(!res.ok){window.location.href='/login';return}const data=await res.json();document.getElementById('userDisplay').textContent=data.user.username;loadTheme()}catch(err){window.location.href='/login'}});
+function loadTheme(){const theme=localStorage.getItem('theme')||'light';document.querySelectorAll('.theme-option').forEach(opt=>opt.classList.remove('active'));document.querySelector(`.theme-${theme}`).classList.add('active');applyTheme(theme)}
+function setTheme(theme){localStorage.setItem('theme',theme);loadTheme();showToast('Đã thay đổi giao diện','success')}
+function applyTheme(theme){const root=document.documentElement;const themes={light:{'--bg':'#fff','--text':'#1e293b'},dark:{'--bg':'#0f172a','--text':'#f8fafc'},yellow:{'--bg':'#fef3c7','--text':'#78350f'},blue:{'--bg':'#dbeafe','--text':'#1e3a8a'}};if(themes[theme]){Object.entries(themes[theme]).forEach(([key,val])=>root.style.setProperty(key,val))}}
+async function exportData(){try{const res=await fetch('/api/quiz/my-activities');const data=await res.json();if(data.success){const blob=new Blob([JSON.stringify(data.quizzes,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`quiz-master-backup-${Date.now()}.json`;a.click();showToast('Đã tải dữ liệu xuống','success')}else{showToast('Lỗi xuất dữ liệu','error')}}catch(err){showToast('Lỗi kết nối','error')}}
+function importData(){const file=document.getElementById('importFile').files[0];if(!file){return}const reader=new FileReader();reader.onload=async(e)=>{try{const data=JSON.parse(e.target.result);showToast('Tính năng nhập dữ liệu đang phát triển','info')}catch(err){showToast('File không hợp lệ','error')}};reader.readAsText(file)}
+async function logout(){if(confirm('Bạn có chắc muốn đăng xuất?')){try{await fetch('/api/logout',{method:'POST'})}catch(err){}window.location.href='/'}}
+</script>
+</body>
+</html>

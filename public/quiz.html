@@ -6,6 +6,7 @@
 <title>Quiz - Quiz Master</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/quiz.css">
+<link rel="stylesheet" href="/css/toast.css">
 </head>
 <body>
 <div class="quiz-container">
@@ -17,7 +18,6 @@
 <button class="btn-icon" onclick="quit()" title="Thoát">✕</button>
 </div>
 </div>
-
 <div id="quizStats" class="quiz-stats">
 <div class="stat-card">
 <div class="stat-label">Câu hỏi</div>
@@ -28,16 +28,13 @@
 <div class="stat-value" id="timer">00:00</div>
 </div>
 </div>
-
 <div class="progress-bar">
 <div class="progress-fill" id="progress"></div>
 </div>
-
 <div id="quizArea"></div>
 </div>
-
 <button class="fullscreen-exit-btn" onclick="exitFullscreen()">✕</button>
-
+<script src="/js/toast.js"></script>
 <script src="/js/quiz-play.js"></script>
 </body>
 </html>

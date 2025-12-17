@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quiz Master - Trang chủ</title>
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/toast.css">
 </head>
 <body>
 <div class="sidebar" id="sidebar">
@@ -16,18 +17,18 @@
 <a href="/">🏠 Trang chủ</a>
 <a href="/create">➕ Tạo câu hỏi</a>
 <a href="/myactivities">📚 Danh sách câu hỏi</a>
+<a href="/settings">⚙️ Cài đặt</a>
 <a href="/login" id="sidebarLogin">🔐 Đăng nhập</a>
 </div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
 <header class="header">
 <div class="container">
 <div class="header-content">
 <button class="menu-toggle" onclick="openSidebar()">
 <span></span><span></span><span></span>
 </button>
-<a href="/" class="logo">
+<a href="/" class="logo" style="margin:0 auto">
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
 <rect width="32" height="32" rx="8" fill="#6366f1"/>
 <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
@@ -38,11 +39,10 @@
 </div>
 </div>
 </header>
-
 <section class="hero">
 <div class="container">
 <div class="hero-content">
-<h1 class="hero-title">Tạo và chia sẻ bài trắc nghiệm của riêng bạn</h1>
+<h1 class="hero-title">Tạo và chia sẻ bài trắc nghiệm</h1>
 <p class="hero-subtitle">Xây dựng câu hỏi tùy chỉnh, theo dõi tiến độ và chia sẻ với mọi người</p>
 <div class="hero-buttons">
 <a href="/create" class="btn btn-primary">Tạo câu hỏi mới ✨</a>
@@ -51,7 +51,6 @@
 </div>
 </div>
 </section>
-
 <section class="features">
 <div class="container">
 <h2 class="section-title">Tính năng nổi bật</h2>
@@ -59,34 +58,32 @@
 <div class="feature-card">
 <div class="feature-icon">📝</div>
 <h3>Tạo câu hỏi tùy chỉnh</h3>
-<p>Tự do tạo câu hỏi với nhiều đáp án, chọn đáp án đúng và tùy chỉnh hoàn toàn</p>
+<p>Tự do tạo câu hỏi với nhiều đáp án</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon">🔒</div>
 <h3>Công khai/Riêng tư</h3>
-<p>Kiểm soát ai có thể xem và làm quiz của bạn với chế độ riêng tư</p>
+<p>Kiểm soát ai có thể xem quiz của bạn</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon">🎯</div>
 <h3>Trải nghiệm mượt mà</h3>
-<p>Giao diện đẹp, hiệu ứng mượt mà, chế độ toàn màn hình tối ưu</p>
+<p>Giao diện đẹp, hiệu ứng mượt mà</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon">⚡</div>
 <h3>Kết quả tức thì</h3>
-<p>Nhận phản hồi ngay lập tức sau mỗi câu trả lời với hiệu ứng sinh động</p>
+<p>Nhận phản hồi ngay lập tức</p>
 </div>
 </div>
 </div>
 </section>
-
 <footer class="footer">
 <div class="container">
-<p>&copy; 2024 Quiz Master v4.0.0 - Ultimate Edition</p>
-<p style="margin-top:10px;opacity:0.7;">Tạo và chia sẻ bài trắc nghiệm của bạn</p>
+<p>&copy; 2025 Quiz Master all rights reserved</p>
 </div>
 </footer>
-
+<script src="/js/toast.js"></script>
 <script src="/js/home.js"></script>
 </body>
 </html>
