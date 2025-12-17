@@ -1,7 +1,7 @@
 {
-  "name": "quiz-master-final",
-  "version": "3.2.0",
-  "description": "Quiz Master với Discord webhook debug",
+  "name": "quiz-master-v3.4.0",
+  "version": "3.4.0",
+  "description": "Quiz Master với hiệu ứng mượt mà",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

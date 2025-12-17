@@ -22,10 +22,8 @@ const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const RESULTS_FILE = path.join(DATA_DIR, 'results.json');
 const RESET_TOKENS_FILE = path.join(DATA_DIR, 'reset_tokens.json');
 
-// Discord webhook helper
 async function sendDiscordLog(message, data = null) {
     if (!DISCORD_WEBHOOK || !DEBUG) return;
-    
     try {
         const payload = {
             embeds: [{
@@ -40,7 +38,6 @@ async function sendDiscordLog(message, data = null) {
                 })) : []
             }]
         };
-        
         await fetch(DISCORD_WEBHOOK, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -51,7 +48,6 @@ async function sendDiscordLog(message, data = null) {
     }
 }
 
-// Debug logging middleware
 if (DEBUG) {
     app.use(async (req, res, next) => {
         const logData = {
@@ -60,8 +56,8 @@ if (DEBUG) {
             ip: req.ip,
             userAgent: req.get('user-agent')
         };
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-        await sendDiscordLog(`Request: ${req.method} ${req.path}`, logData);
+        console.log(\`[\${new Date().toISOString()}] \${req.method} \${req.path}\`);
+        await sendDiscordLog(\`Request: \${req.method} \${req.path}\`, logData);
         next();
     });
 }
@@ -103,7 +99,7 @@ async function readJSON(filepath, defaultValue = {}) {
         const data = await fs.readFile(filepath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        if (DEBUG) console.error(`Error reading ${filepath}:`, error);
+        if (DEBUG) console.error(\`Error reading \${filepath}:\`, error);
         return defaultValue;
     }
 }
@@ -125,11 +121,17 @@ function validateEmail(email) {
     return re.test(email);
 }
 
+async function generateUserId() {
+    const users = await readJSON(USERS_FILE, {});
+    const existingIds = Object.values(users).map(u => parseInt(u.id)).filter(id => !isNaN(id));
+    if (existingIds.length === 0) return '1';
+    const maxId = Math.max(...existingIds);
+    return String(maxId + 1);
+}
+
 async function authenticate(req, res, next) {
     const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-        return res.status(401).json({ error: 'Chưa đăng nhập' });
-    }
+    if (!token) return res.status(401).json({ error: 'Chưa đăng nhập' });
     const sessions = await readJSON(SESSIONS_FILE, {});
     const session = sessions[token];
     if (!session || session.expiresAt < Date.now()) {
@@ -142,16 +144,12 @@ async function authenticate(req, res, next) {
     next();
 }
 
-// Debug endpoint
 app.get('/api/debug', async (req, res) => {
-    if (!DEBUG) {
-        return res.status(403).json({ error: 'Debug mode is disabled' });
-    }
+    if (!DEBUG) return res.status(403).json({ error: 'Debug mode is disabled' });
     const users = await readJSON(USERS_FILE, {});
     const sessions = await readJSON(SESSIONS_FILE, {});
     const results = await readJSON(RESULTS_FILE, []);
     const resetTokens = await readJSON(RESET_TOKENS_FILE, {});
-    
     const debugInfo = {
         users: Object.keys(users).map(u => ({
             username: u,
@@ -159,42 +157,23 @@ app.get('/api/debug', async (req, res) => {
             id: users[u].id
         })),
         sessionsCount: Object.keys(sessions).length,
-        activeSessions: Object.keys(sessions).map(token => ({
-            token: token.substring(0, 8) + '...',
-            username: sessions[token].username,
-            expiresAt: new Date(sessions[token].expiresAt).toISOString()
-        })),
         resultsCount: results.length,
         resetTokensCount: Object.keys(resetTokens).length,
-        resetTokens: Object.keys(resetTokens).map(token => ({
-            token: token.substring(0, 8) + '...',
-            username: resetTokens[token].username,
-            expiresAt: new Date(resetTokens[token].expiresAt).toISOString()
-        })),
         env: {
             emailConfigured: !!process.env.EMAIL_USER,
             emailUser: process.env.EMAIL_USER || 'not set',
-            baseUrl: process.env.BASE_URL || `http://localhost:${PORT}`,
+            baseUrl: process.env.BASE_URL || \`http://localhost:\${PORT}\`,
             discordWebhook: !!DISCORD_WEBHOOK
         }
     };
-    
-    await sendDiscordLog('📊 Debug info requested', {
-        users: debugInfo.users.length,
-        sessions: debugInfo.sessionsCount,
-        results: debugInfo.resultsCount
-    });
-    
+    await sendDiscordLog('📊 Debug info requested');
     res.json(debugInfo);
 });
 
-// Register
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password, fullname, email } = req.body;
-        
         await sendDiscordLog('📝 Register attempt', { username, email });
-        
         if (!username || !password || !fullname || !email) {
             return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
         }
@@ -207,20 +186,17 @@ app.post('/api/register', async (req, res) => {
         if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Email không hợp lệ' });
         }
-        
         const users = await readJSON(USERS_FILE, {});
         if (users[username]) {
             await sendDiscordLog('❌ Register failed: username exists', { username });
             return res.status(400).json({ error: 'Tên đăng nhập đã tồn tại' });
         }
-        
         const emailExists = Object.values(users).some(u => u.email.toLowerCase() === email.toLowerCase());
         if (emailExists) {
             await sendDiscordLog('❌ Register failed: email exists', { email });
             return res.status(400).json({ error: 'Email đã được sử dụng' });
         }
-        
-        const userId = crypto.randomBytes(16).toString('hex');
+        const userId = await generateUserId();
         users[username] = {
             id: userId,
             username,
@@ -229,10 +205,8 @@ app.post('/api/register', async (req, res) => {
             password: hashPassword(password),
             createdAt: Date.now()
         };
-        
         await writeJSON(USERS_FILE, users);
         await sendDiscordLog('✅ Register successful', { username, userId });
-        
         res.json({ success: true, message: 'Đăng ký thành công! Vui lòng đăng nhập.' });
     } catch (error) {
         console.error('Register error:', error);
@@ -241,55 +215,40 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        
         await sendDiscordLog('🔐 Login attempt', { username });
-        
         if (!username || !password) {
             return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
         }
-        
         const users = await readJSON(USERS_FILE, {});
         const user = users[username];
-        
         if (!user || user.password !== hashPassword(password)) {
             await sendDiscordLog('❌ Login failed: invalid credentials', { username });
             return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
         }
-        
         const token = generateToken();
         const sessions = await readJSON(SESSIONS_FILE, {});
         const expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000);
-        
         sessions[token] = {
             userId: user.id,
             username: user.username,
             fullname: user.fullname,
             expiresAt
         };
-        
         await writeJSON(SESSIONS_FILE, sessions);
-        
         res.cookie('accessToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 7 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
-        
-        await sendDiscordLog('✅ Login successful', { 
-            username, 
-            token: token.substring(0, 8) + '...',
-            expiresAt: new Date(expiresAt).toISOString()
-        });
-        
+        await sendDiscordLog('✅ Login successful', { username });
         res.json({
             success: true,
             token,
-            loginUrl: `/oauth/login/${token}`,
+            loginUrl: \`/oauth/login/\${token}\`,
             user: { username: user.username, fullname: user.fullname }
         });
     } catch (error) {
@@ -299,21 +258,17 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Verify
 app.get('/api/verify', authenticate, async (req, res) => {
     res.json({ success: true, user: { username: req.username } });
 });
 
-// Logout
 app.post('/api/logout', authenticate, async (req, res) => {
     try {
         const sessions = await readJSON(SESSIONS_FILE, {});
         delete sessions[req.token];
         await writeJSON(SESSIONS_FILE, sessions);
         res.clearCookie('accessToken');
-        
         await sendDiscordLog('🚪 Logout', { username: req.username });
-        
         res.json({ success: true });
     } catch (error) {
         console.error('Logout error:', error);
@@ -321,76 +276,41 @@ app.post('/api/logout', authenticate, async (req, res) => {
     }
 });
 
-// Forgot Password
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
-        
         await sendDiscordLog('📧 Forgot password request', { email });
-        
         if (!email || !validateEmail(email)) {
             return res.status(400).json({ error: 'Email không hợp lệ' });
         }
-        
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
             await sendDiscordLog('❌ Email not configured');
             return res.status(500).json({ error: 'Hệ thống email chưa được cấu hình' });
         }
-        
         const users = await readJSON(USERS_FILE, {});
         const user = Object.values(users).find(u => u.email.toLowerCase() === email.toLowerCase());
-        
         if (!user) {
             await sendDiscordLog('❌ Email not found', { email });
             return res.status(404).json({ error: 'Không tìm thấy tài khoản với email này' });
         }
-        
         const resetToken = generateToken();
         const resetTokens = await readJSON(RESET_TOKENS_FILE, {});
-        
-        resetTokens[user.id] = {
-            token: resetToken,
+        resetTokens[resetToken] = {
             userId: user.id,
             username: user.username,
             email: user.email,
-            expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes
+            expiresAt: Date.now() + (5 * 60 * 1000)
         };
-        
         await writeJSON(RESET_TOKENS_FILE, resetTokens);
-        
-        const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
-        const resetUrl = `${baseUrl}/oauth/resetpassword/${user.id}/${resetToken}`;
-        
-        await sendDiscordLog('🔗 Reset URL generated', { 
-            user: user.username,
-            resetUrl,
-            expiresIn: '5 minutes'
-        });
-        
+        const baseUrl = process.env.BASE_URL || \`http://localhost:\${PORT}\`;
+        const resetUrl = \`\${baseUrl}/oauth/resetpassword/\${resetToken}\`;
+        await sendDiscordLog('🔗 Reset URL generated', { user: user.username, resetUrl });
         const mailOptions = {
-            from: `"Quiz Master" <${process.env.EMAIL_USER}>`,
+            from: \`"Quiz Master" <\${process.env.EMAIL_USER}>\`,
             to: email,
             subject: '🔐 Đặt lại mật khẩu - Quiz Master',
-            html: `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><style>body{margin:0;padding:0;font-family:Arial,sans-serif;background:#f5f7fa}.container{max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)}.header{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:40px 30px;text-align:center}.logo{width:60px;height:60px;background:white;border-radius:12px;margin:0 auto 20px;font-size:32px;line-height:60px}.header h1{color:white;margin:0;font-size:28px}.content{padding:40px 30px}.message{color:#64748b;line-height:1.6;margin-bottom:30px;font-size:15px}.btn{display:inline-block;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:white;padding:16px 48px;text-decoration:none;border-radius:12px;font-weight:600}.warning{background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;margin:20px 0;color:#92400e;font-size:14px}.footer{background:#f8fafc;padding:30px;text-align:center;color:#94a3b8;font-size:13px;border-top:1px solid #e2e8f0}</style></head>
-<body>
-<div class="container">
-<div class="header"><div class="logo">🎓</div><h1>Đặt lại mật khẩu</h1></div>
-<div class="content">
-<p class="message">Xin chào <strong>${user.fullname}</strong>,</p>
-<p class="message">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>${user.username}</strong>.</p>
-<div style="text-align:center;margin:30px 0;"><a href="${resetUrl}" class="btn">Nhấn vào đây để đặt lại mật khẩu</a></div>
-<div class="warning"><strong>⏱️ QUAN TRỌNG:</strong> Link này chỉ có hiệu lực trong <strong>5 phút</strong>.</div>
-</div>
-<div class="footer"><p><strong>Quiz Master</strong></p><p>© 2024 Quiz Master</p></div>
-</div>
-</body>
-</html>
-            `
+            html: \`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:40px 20px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)"><div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:16px">🎓</div><h1 style="color:white;margin:0;font-size:28px">Đặt lại mật khẩu</h1></div><div style="padding:40px"><p style="color:#64748b;line-height:1.6;margin-bottom:20px">Xin chào <strong>\${user.fullname}</strong>,</p><p style="color:#64748b;line-height:1.6;margin-bottom:30px">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>\${user.username}</strong>.</p><div style="text-align:center;margin:30px 0"><a href="\${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:white;padding:16px 48px;text-decoration:none;border-radius:12px;font-weight:600">Đặt lại mật khẩu</a></div><div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;color:#92400e;font-size:14px"><strong>⏱️ QUAN TRỌNG:</strong> Link này chỉ có hiệu lực trong <strong>5 phút</strong>.</div></div><div style="background:#f8fafc;padding:30px;text-align:center;color:#94a3b8;font-size:13px;border-top:1px solid #e2e8f0"><p><strong>Quiz Master</strong></p><p>© 2024 Quiz Master</p></div></div></body></html>\`
         };
-        
         try {
             await transporter.sendMail(mailOptions);
             await sendDiscordLog('✅ Reset email sent', { to: email });
@@ -410,43 +330,35 @@ app.post('/api/forgot-password', async (req, res) => {
     }
 });
 
-// Reset Password
 app.post('/api/reset-password', async (req, res) => {
     try {
-        const { userId, token, newPassword } = req.body;
-        
-        await sendDiscordLog('🔄 Reset password attempt', { userId, token: token?.substring(0, 8) + '...' });
-        
-        if (!userId || !token || !newPassword) {
+        const { token, newPassword } = req.body;
+        await sendDiscordLog('🔄 Reset password attempt', { token: token?.substring(0, 8) + '...' });
+        if (!token || !newPassword) {
             return res.status(400).json({ error: 'Thiếu thông tin' });
         }
         if (newPassword.length < 6) {
             return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' });
         }
-        
         const resetTokens = await readJSON(RESET_TOKENS_FILE, {});
-        const resetData = resetTokens[userId];
-        
-        if (!resetData || resetData.token !== token) {
-            await sendDiscordLog('❌ Invalid reset token', { userId });
+        const resetData = resetTokens[token];
+        if (!resetData) {
+            await sendDiscordLog('❌ Invalid reset token', { token });
             return res.status(400).json({ error: 'Link không hợp lệ' });
         }
         if (resetData.expiresAt < Date.now()) {
-            delete resetTokens[userId];
+            delete resetTokens[token];
             await writeJSON(RESET_TOKENS_FILE, resetTokens);
-            await sendDiscordLog('❌ Reset token expired', { userId });
+            await sendDiscordLog('❌ Reset token expired', { token });
             return res.status(400).json({ error: 'Link đã hết hạn (5 phút)' });
         }
-        
         const users = await readJSON(USERS_FILE, {});
         if (users[resetData.username]) {
             users[resetData.username].password = hashPassword(newPassword);
             await writeJSON(USERS_FILE, users);
         }
-        
-        delete resetTokens[userId];
+        delete resetTokens[token];
         await writeJSON(RESET_TOKENS_FILE, resetTokens);
-        
         const sessions = await readJSON(SESSIONS_FILE, {});
         const newSessions = {};
         for (const [sessToken, sessData] of Object.entries(sessions)) {
@@ -455,9 +367,7 @@ app.post('/api/reset-password', async (req, res) => {
             }
         }
         await writeJSON(SESSIONS_FILE, newSessions);
-        
         await sendDiscordLog('✅ Password reset successful', { username: resetData.username });
-        
         res.json({ success: true, message: 'Mật khẩu đã được đặt lại thành công' });
     } catch (error) {
         console.error('Reset password error:', error);
@@ -466,7 +376,6 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
-// Save result
 app.post('/api/save-result', authenticate, async (req, res) => {
     try {
         const { totalTime, avgTime, fastestTime, slowestTime } = req.body;
@@ -480,12 +389,7 @@ app.post('/api/save-result', authenticate, async (req, res) => {
             completedAt: Date.now()
         });
         await writeJSON(RESULTS_FILE, results);
-        
-        await sendDiscordLog('🎯 Quiz completed', { 
-            username: req.username,
-            totalTime: `${Math.floor(totalTime/60)}:${String(totalTime%60).padStart(2,'0')}`
-        });
-        
+        await sendDiscordLog('🎯 Quiz completed', { username: req.username });
         res.json({ success: true });
     } catch (error) {
         console.error('Save result error:', error);
@@ -493,7 +397,6 @@ app.post('/api/save-result', authenticate, async (req, res) => {
     }
 });
 
-// Get results
 app.get('/api/results', authenticate, async (req, res) => {
     try {
         const results = await readJSON(RESULTS_FILE, []);
@@ -505,7 +408,6 @@ app.get('/api/results', authenticate, async (req, res) => {
     }
 });
 
-// Leaderboard
 app.get('/api/leaderboard', async (req, res) => {
     try {
         const results = await readJSON(RESULTS_FILE, []);
@@ -525,7 +427,6 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-// Pages
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
@@ -534,11 +435,9 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// OAuth login page - với token
 app.get('/oauth/login/:token', async (req, res) => {
     const { token } = req.params;
     const sessions = await readJSON(SESSIONS_FILE, {});
-    
     if (sessions[token]) {
         res.cookie('accessToken', token, {
             httpOnly: true,
@@ -546,10 +445,7 @@ app.get('/oauth/login/:token', async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
-        await sendDiscordLog('🔐 OAuth login via token', { 
-            username: sessions[token].username,
-            token: token.substring(0, 8) + '...'
-        });
+        await sendDiscordLog('🔐 OAuth login via token', { username: sessions[token].username });
         res.redirect('/');
     } else {
         res.redirect('/login');
@@ -560,8 +456,7 @@ app.get('/quiz', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'quiz.html'));
 });
 
-// Reset password page - endpoint cũ
-app.get('/oauth/resetpassword/:userId/:token', (req, res) => {
+app.get('/oauth/resetpassword/:token', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
 });
 
@@ -571,8 +466,6 @@ app.use((req, res) => {
 
 async function startServer() {
     await ensureDataDir();
-    
-    // Verify email
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         try {
             await transporter.verify();
@@ -587,12 +480,11 @@ async function startServer() {
         console.log('📧 Email: Not configured');
         await sendDiscordLog('⚠️ Server started - Email not configured');
     }
-    
     app.listen(PORT, () => {
-        console.log(`🚀 Server: http://localhost:${PORT}`);
-        console.log(`🐛 Debug: ${DEBUG ? 'ON' : 'OFF'}`);
-        console.log(`📊 Discord webhook: ${DISCORD_WEBHOOK ? 'Configured ✓' : 'Not configured'}`);
-        if (DEBUG) console.log(`   Debug endpoint: http://localhost:${PORT}/api/debug`);
+        console.log(\`🚀 Server: http://localhost:\${PORT}\`);
+        console.log(\`🐛 Debug: \${DEBUG ? 'ON' : 'OFF'}\`);
+        console.log(\`📊 Discord webhook: \${DISCORD_WEBHOOK ? 'Configured ✓' : 'Not configured'}\`);
+        if (DEBUG) console.log(\`   Debug endpoint: http://localhost:\${PORT}/api/debug\`);
     });
 }
 
