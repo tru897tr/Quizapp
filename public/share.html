@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chia sẻ Quiz - Quiz Master</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+.share-container{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.share-card{background:var(--white);border-radius:20px;padding:48px;max-width:500px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.35)}
+.share-icon{font-size:80px;margin-bottom:24px}
+.share-title{font-size:32px;font-weight:800;margin-bottom:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.share-desc{color:var(--gray);font-size:16px;margin-bottom:32px}
+.share-btn{width:100%;max-width:300px;margin:0 auto}
+</style>
+</head>
+<body>
+<div class="share-container">
+<div class="share-card">
+<div class="share-icon">🎯</div>
+<h1 class="share-title" id="quizTitle">Quiz Title</h1>
+<p class="share-desc" id="quizDesc">Nhấn vào nút bên dưới để bắt đầu làm quiz</p>
+<button class="btn btn-primary share-btn" onclick="startQuiz()">Bắt đầu làm quiz</button>
+</div>
+</div>
+<script src="/js/share.js"></script>
+</body>
+</html>

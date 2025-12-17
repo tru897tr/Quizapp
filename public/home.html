@@ -14,12 +14,13 @@
 </div>
 <div class="sidebar-menu">
 <a href="/">🏠 Trang chủ</a>
-<a href="/quiz">📝 Làm câu hỏi</a>
+<a href="/create">➕ Tạo câu hỏi</a>
+<a href="/myactivities">📚 Danh sách câu hỏi</a>
 <a href="/login" id="sidebarLogin">🔐 Đăng nhập</a>
-<a href="#" onclick="logout(); return false;" style="display:none;" id="sidebarLogout">🚪 Đăng xuất</a>
 </div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
 <header class="header">
 <div class="container">
 <div class="header-content">
@@ -37,62 +38,55 @@
 </div>
 </div>
 </header>
+
 <section class="hero">
 <div class="container">
 <div class="hero-content">
-<h1 class="hero-title">Tạo trò chơi câu hỏi trắc nghiệm dành cho chính bạn</h1>
-<p class="hero-subtitle">Học tập thông minh, theo dõi tiến độ và cạnh tranh với bạn bè</p>
+<h1 class="hero-title">Tạo và chia sẻ bài trắc nghiệm của riêng bạn</h1>
+<p class="hero-subtitle">Xây dựng câu hỏi tùy chỉnh, theo dõi tiến độ và chia sẻ với mọi người</p>
 <div class="hero-buttons">
-<button class="btn btn-primary" onclick="startQuiz()">Bắt đầu ngay ✨</button>
-<button class="btn btn-secondary" onclick="showLeaderboard()">🏆 Bảng xếp hạng</button>
+<a href="/create" class="btn btn-primary">Tạo câu hỏi mới ✨</a>
+<a href="/myactivities" class="btn btn-secondary">Danh sách câu hỏi 📚</a>
 </div>
 </div>
 </div>
 </section>
+
 <section class="features">
 <div class="container">
 <h2 class="section-title">Tính năng nổi bật</h2>
 <div class="features-grid">
 <div class="feature-card">
-<div class="feature-icon">📊</div>
-<h3>Theo dõi tiến độ</h3>
-<p>Xem lịch sử làm bài và thống kê chi tiết về thời gian hoàn thành</p>
+<div class="feature-icon">📝</div>
+<h3>Tạo câu hỏi tùy chỉnh</h3>
+<p>Tự do tạo câu hỏi với nhiều đáp án, chọn đáp án đúng và tùy chỉnh hoàn toàn</p>
 </div>
 <div class="feature-card">
-<div class="feature-icon">🏆</div>
-<h3>Bảng xếp hạng</h3>
-<p>Cạnh tranh với người dùng khác và leo lên top đầu</p>
+<div class="feature-icon">🔒</div>
+<h3>Công khai/Riêng tư</h3>
+<p>Kiểm soát ai có thể xem và làm quiz của bạn với chế độ riêng tư</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon">🎯</div>
-<h3>Câu hỏi chất lượng</h3>
-<p>5 câu hỏi được biên soạn kỹ lưỡng về Python cơ bản</p>
+<h3>Trải nghiệm mượt mà</h3>
+<p>Giao diện đẹp, hiệu ứng mượt mà, chế độ toàn màn hình tối ưu</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon">⚡</div>
 <h3>Kết quả tức thì</h3>
-<p>Nhận phản hồi ngay lập tức sau mỗi câu trả lời</p>
+<p>Nhận phản hồi ngay lập tức sau mỗi câu trả lời với hiệu ứng sinh động</p>
 </div>
 </div>
 </div>
 </section>
-<section class="leaderboard-section" id="leaderboardSection" style="display:none;">
-<div class="container">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;flex-wrap:wrap;gap:20px;">
-<h2 class="section-title" style="margin-bottom:0;">🏆 Bảng xếp hạng</h2>
-<button class="btn btn-secondary" onclick="hideLeaderboard()">Đóng</button>
-</div>
-<div id="leaderboardContent">
-<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>
-</div>
-</div>
-</section>
+
 <footer class="footer">
 <div class="container">
-<p>&copy; 2024 Quiz Master v3.4.0 - Ultra Smooth Edition</p>
-<p style="margin-top:10px;opacity:0.7;">Tạo trò chơi câu hỏi trắc nghiệm dành cho bạn</p>
+<p>&copy; 2024 Quiz Master v4.0.0 - Ultimate Edition</p>
+<p style="margin-top:10px;opacity:0.7;">Tạo và chia sẻ bài trắc nghiệm của bạn</p>
 </div>
 </footer>
+
 <script src="/js/home.js"></script>
 </body>
 </html>

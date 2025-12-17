@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chỉnh sửa câu hỏi - Quiz Master</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/create.css">
+</head>
+<body>
+<div class="create-container">
+<div class="create-header">
+<div class="container">
+<a href="/" class="logo">
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+<rect width="32" height="32" rx="8" fill="#6366f1"/>
+<path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+</svg>
+<span>Quiz Master</span>
+</a>
+<div style="display:flex;gap:12px;align-items:center;">
+<span id="userDisplay" style="font-weight:600;color:var(--dark);font-size:15px;"></span>
+<a href="/myactivities" class="btn btn-secondary" style="padding:11px 20px;">Danh sách câu hỏi</a>
+</div>
+</div>
+</div>
+
+<div class="create-title-section">
+<input type="text" id="quizTitle" class="title-input" placeholder="Tiêu đề quiz của bạn..." maxlength="200">
+</div>
+
+<div class="questions-container" id="questionsContainer"></div>
+
+<button class="add-question-btn" onclick="addQuestion()">+ Thêm câu hỏi</button>
+
+<div class="action-panel">
+<div class="action-panel-content">
+<div class="visibility-toggle">
+<label class="visibility-switch">
+<input type="checkbox" id="publicToggle">
+<span class="slider"></span>
+</label>
+<div>
+<label for="publicToggle" style="display:block;cursor:pointer;">Chế độ công khai</label>
+<span class="visibility-status" id="visibilityStatus">Riêng tư</span>
+</div>
+</div>
+<button class="submit-btn" onclick="updateQuiz()">✓ Lưu thay đổi</button>
+</div>
+</div>
+</div>
+
+<div id="message" class="message"></div>
+
+<script src="/js/edit.js"></script>
+</body>
+</html>
