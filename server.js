@@ -455,6 +455,11 @@ app.get('/api/quiz/:id', async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy quiz' });
         }
         
+        // If requesting full data for editing
+        if (req.headers['x-request-full-data'] === 'true' && isOwner) {
+            return res.json({ success: true, quiz: quiz });
+        }
+        
         // Return quiz without showing correct answers
         const safeQuiz = {
             id: quiz.id,
@@ -711,6 +716,10 @@ app.get('/create', (req, res) => {
 
 app.get('/myactivities', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'myactivities.html'));
+});
+
+app.get('/settings', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'settings.html'));
 });
 
 app.get('/create/edit/:id', (req, res) => {
