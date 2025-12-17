@@ -56,8 +56,8 @@ if (DEBUG) {
             ip: req.ip,
             userAgent: req.get('user-agent')
         };
-        console.log(\`[\${new Date().toISOString()}] \${req.method} \${req.path}\`);
-        await sendDiscordLog(\`Request: \${req.method} \${req.path}\`, logData);
+        console.log('[' + new Date().toISOString() + '] ' + req.method + ' ' + req.path);
+        await sendDiscordLog('Request: ' + req.method + ' ' + req.path, logData);
         next();
     });
 }
@@ -99,7 +99,7 @@ async function readJSON(filepath, defaultValue = {}) {
         const data = await fs.readFile(filepath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        if (DEBUG) console.error(\`Error reading \${filepath}:\`, error);
+        if (DEBUG) console.error('Error reading ' + filepath + ':', error);
         return defaultValue;
     }
 }
@@ -162,7 +162,7 @@ app.get('/api/debug', async (req, res) => {
         env: {
             emailConfigured: !!process.env.EMAIL_USER,
             emailUser: process.env.EMAIL_USER || 'not set',
-            baseUrl: process.env.BASE_URL || \`http://localhost:\${PORT}\`,
+            baseUrl: process.env.BASE_URL || 'http://localhost:' + PORT,
             discordWebhook: !!DISCORD_WEBHOOK
         }
     };
@@ -248,7 +248,7 @@ app.post('/api/login', async (req, res) => {
         res.json({
             success: true,
             token,
-            loginUrl: \`/oauth/login/\${token}\`,
+            loginUrl: '/oauth/login/' + token,
             user: { username: user.username, fullname: user.fullname }
         });
     } catch (error) {
@@ -302,14 +302,14 @@ app.post('/api/forgot-password', async (req, res) => {
             expiresAt: Date.now() + (5 * 60 * 1000)
         };
         await writeJSON(RESET_TOKENS_FILE, resetTokens);
-        const baseUrl = process.env.BASE_URL || \`http://localhost:\${PORT}\`;
-        const resetUrl = \`\${baseUrl}/oauth/resetpassword/\${resetToken}\`;
+        const baseUrl = process.env.BASE_URL || 'http://localhost:' + PORT;
+        const resetUrl = baseUrl + '/oauth/resetpassword/' + resetToken;
         await sendDiscordLog('🔗 Reset URL generated', { user: user.username, resetUrl });
         const mailOptions = {
-            from: \`"Quiz Master" <\${process.env.EMAIL_USER}>\`,
+            from: '"Quiz Master" <' + process.env.EMAIL_USER + '>',
             to: email,
             subject: '🔐 Đặt lại mật khẩu - Quiz Master',
-            html: \`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:40px 20px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)"><div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:16px">🎓</div><h1 style="color:white;margin:0;font-size:28px">Đặt lại mật khẩu</h1></div><div style="padding:40px"><p style="color:#64748b;line-height:1.6;margin-bottom:20px">Xin chào <strong>\${user.fullname}</strong>,</p><p style="color:#64748b;line-height:1.6;margin-bottom:30px">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>\${user.username}</strong>.</p><div style="text-align:center;margin:30px 0"><a href="\${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:white;padding:16px 48px;text-decoration:none;border-radius:12px;font-weight:600">Đặt lại mật khẩu</a></div><div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;color:#92400e;font-size:14px"><strong>⏱️ QUAN TRỌNG:</strong> Link này chỉ có hiệu lực trong <strong>5 phút</strong>.</div></div><div style="background:#f8fafc;padding:30px;text-align:center;color:#94a3b8;font-size:13px;border-top:1px solid #e2e8f0"><p><strong>Quiz Master</strong></p><p>© 2024 Quiz Master</p></div></div></body></html>\`
+            html: '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:40px 20px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)"><div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:16px">🎓</div><h1 style="color:white;margin:0;font-size:28px">Đặt lại mật khẩu</h1></div><div style="padding:40px"><p style="color:#64748b;line-height:1.6;margin-bottom:20px">Xin chào <strong>' + user.fullname + '</strong>,</p><p style="color:#64748b;line-height:1.6;margin-bottom:30px">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>' + user.username + '</strong>.</p><div style="text-align:center;margin:30px 0"><a href="' + resetUrl + '" style="display:inline-block;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:white;padding:16px 48px;text-decoration:none;border-radius:12px;font-weight:600">Đặt lại mật khẩu</a></div><div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;color:#92400e;font-size:14px"><strong>⏱️ QUAN TRỌNG:</strong> Link này chỉ có hiệu lực trong <strong>5 phút</strong>.</div></div><div style="background:#f8fafc;padding:30px;text-align:center;color:#94a3b8;font-size:13px;border-top:1px solid #e2e8f0"><p><strong>Quiz Master</strong></p><p>© 2024 Quiz Master</p></div></div></body></html>'
         };
         try {
             await transporter.sendMail(mailOptions);
@@ -481,10 +481,10 @@ async function startServer() {
         await sendDiscordLog('⚠️ Server started - Email not configured');
     }
     app.listen(PORT, () => {
-        console.log(\`🚀 Server: http://localhost:\${PORT}\`);
-        console.log(\`🐛 Debug: \${DEBUG ? 'ON' : 'OFF'}\`);
-        console.log(\`📊 Discord webhook: \${DISCORD_WEBHOOK ? 'Configured ✓' : 'Not configured'}\`);
-        if (DEBUG) console.log(\`   Debug endpoint: http://localhost:\${PORT}/api/debug\`);
+        console.log('🚀 Server: http://localhost:' + PORT);
+        console.log('🐛 Debug: ' + (DEBUG ? 'ON' : 'OFF'));
+        console.log('📊 Discord webhook: ' + (DISCORD_WEBHOOK ? 'Configured ✓' : 'Not configured'));
+        if (DEBUG) console.log('   Debug endpoint: http://localhost:' + PORT + '/api/debug');
     });
 }
 
