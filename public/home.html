@@ -43,8 +43,8 @@
 <h1 class="hero-title">Tạo trò chơi câu hỏi trắc nghiệm dành cho chính bạn</h1>
 <p class="hero-subtitle">Học tập thông minh, theo dõi tiến độ và cạnh tranh với bạn bè</p>
 <div class="hero-buttons">
-<button class="btn btn-primary" onclick="startQuiz()">Bắt đầu ngay</button>
-<button class="btn btn-secondary" onclick="showLeaderboard()">Bảng xếp hạng</button>
+<button class="btn btn-primary" onclick="startQuiz()">Bắt đầu ngay ✨</button>
+<button class="btn btn-secondary" onclick="showLeaderboard()">🏆 Bảng xếp hạng</button>
 </div>
 </div>
 </div>
@@ -66,7 +66,7 @@
 <div class="feature-card">
 <div class="feature-icon">🎯</div>
 <h3>Câu hỏi chất lượng</h3>
-<p>35 câu hỏi được biên soạn kỹ lưỡng về Python cơ bản</p>
+<p>5 câu hỏi được biên soạn kỹ lưỡng về Python cơ bản</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon">⚡</div>
@@ -78,18 +78,19 @@
 </section>
 <section class="leaderboard-section" id="leaderboardSection" style="display:none;">
 <div class="container">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;flex-wrap:wrap;gap:20px;">
 <h2 class="section-title" style="margin-bottom:0;">🏆 Bảng xếp hạng</h2>
 <button class="btn btn-secondary" onclick="hideLeaderboard()">Đóng</button>
 </div>
 <div id="leaderboardContent">
-<div class="loading"><div class="spinner"></div></div>
+<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>
 </div>
 </div>
 </section>
 <footer class="footer">
 <div class="container">
-<p>&copy; 2024 Quiz Master - Tạo trò chơi câu hỏi trắc nghiệm dành cho bạn</p>
+<p>&copy; 2024 Quiz Master v3.4.0 - Ultra Smooth Edition</p>
+<p style="margin-top:10px;opacity:0.7;">Tạo trò chơi câu hỏi trắc nghiệm dành cho bạn</p>
 </div>
 </footer>
 <script src="/js/home.js"></script>
