@@ -4,7 +4,7 @@
 
 ✅ Đăng ký/Đăng nhập với email
 ✅ Quên mật khẩu & Reset qua email  
-✅ Tạo câu hỏi tùy chỉnh với nhiều đáp án
+✅ Tạo câu hỏi tùy chỉnh với nhiều đáp án (A-F)
 ✅ Tracking thời gian chi tiết
 ✅ Bảng xếp hạng
 ✅ Chế độ công khai/riêng tư
@@ -16,7 +16,7 @@
 
 - Node.js >= 14.0.0
 - npm hoặc yarn
-- Gmail account (cho tính năng reset password)
+- Gmail account (cho tính năng reset password - optional)
 
 ## 🔧 Cài đặt
 
@@ -24,7 +24,7 @@
 
 ```bash
 git clone <repository-url>
-cd quiz-app-fixed
+cd quiz-master-fixed
 ```
 
 ### 2. Cài đặt dependencies
@@ -33,7 +33,7 @@ cd quiz-app-fixed
 npm install
 ```
 
-### 3. Cấu hình email
+### 3. Cấu hình email (Optional - cho password reset)
 
 1. Tạo App Password từ Google Account:
    - Truy cập https://myaccount.google.com/security
@@ -66,17 +66,6 @@ npm start
 
 Server sẽ chạy tại: http://localhost:3000
 
-## 🔍 Debug Mode
-
-Debug mode giúp bạn theo dõi chi tiết hoạt động của server:
-
-- `DEBUG=true`: Hiển thị tất cả logs chi tiết
-- `DEBUG=false`: Chỉ hiển thị logs cần thiết
-
-## 📧 Test Email
-
-Khi server khởi động thành công với email đã cấu hình, hệ thống sẽ tự động gửi một email test đẹp về địa chỉ email bạn cấu hình để xác nhận email service hoạt động tốt.
-
 ## 🌐 Deploy lên Render
 
 ### 1. Chuẩn bị
@@ -96,7 +85,7 @@ Khi server khởi động thành công với email đã cấu hình, hệ thốn
    - **Start Command**: `npm start`
    - **Port**: Render tự động detect (không cần chỉ định)
 
-### 3. Thêm Environment Variables
+### 3. Thêm Environment Variables (Optional - cho email)
 
 Trong phần "Environment" của Render, thêm:
 
@@ -112,20 +101,18 @@ DEBUG=false
 - Không set biến `PORT` trên Render - Render tự động set biến này
 - `BASE_URL` phải là URL chính xác của app trên Render
 - Đặt `DEBUG=false` cho production để tránh logs quá nhiều
+- Email không bắt buộc - app vẫn chạy bình thường không có email
 
 ### 4. Deploy
 
 1. Click "Create Web Service"
 2. Đợi deploy hoàn tất (5-10 phút)
-3. Kiểm tra logs để xác nhận:
-   - Server running successfully
-   - Email service connected
-   - Test email sent
+3. Kiểm tra logs để xác nhận server đã chạy
 
 ## 🗂️ Cấu trúc thư mục
 
 ```
-quiz-app-fixed/
+quiz-master-fixed/
 ├── server.js              # Express server chính
 ├── package.json          
 ├── .env.example          # Template cho .env
@@ -181,9 +168,10 @@ kill -9 <PID>
 
 ### Email không gửi được
 
-1. Kiểm tra App Password đã tạo đúng chưa
-2. Đảm bảo 2-Step Verification đã bật
-3. Kiểm tra console logs để xem lỗi cụ thể
+- App vẫn hoạt động bình thường
+- Chỉ tính năng reset password không dùng được
+- Kiểm tra App Password đã tạo đúng chưa
+- Đảm bảo 2-Step Verification đã bật
 
 ### Deploy Render bị lỗi
 
@@ -216,25 +204,20 @@ kill -9 <PID>
 - `GET /api/results` - Lấy kết quả của user
 - `GET /api/leaderboard` - Bảng xếp hạng
 
-## 🎯 Features đã sửa
+## 🎯 Features đã sửa trong phiên bản này
 
-✅ Sửa lỗi menu không mở được (3 gạch)
-✅ Sửa lỗi hiệu ứng menu khựng, đứng
-✅ Loại bỏ hiệu ứng thừa
-✅ Sửa lỗi trang cài đặt không có nút menu
-✅ Làm mờ menu item đang active
-✅ Sửa lỗi trang tạo câu hỏi không truy cập được
-✅ Sửa lỗi không tick được checkbox
-✅ Sửa lỗi port không nhận đúng trên Render
-✅ Sửa lỗi email không kết nối được
-✅ Thêm debug mode chi tiết
-✅ Gửi email test khi deploy hoàn tất
+✅ Sửa lỗi trang quiz chỉ hiển thị A-B, giờ hiển thị đầy đủ A-F
+✅ Sửa lỗi email timeout trên Render (non-critical)
+✅ Thêm timeout ngắn hơn cho email connection
+✅ Server vẫn chạy bình thường khi email không kết nối được
+✅ Hiển thị message rõ ràng về trạng thái email
+✅ Tối ưu performance quiz play
 
 ## 💡 Tips
 
 1. **Development**: Luôn dùng `DEBUG=true` để theo dõi logs
 2. **Production**: Dùng `DEBUG=false` để giảm logs
-3. **Email testing**: Dùng email thật để test, không dùng fake email
+3. **Email**: Không bắt buộc - app vẫn chạy tốt không có email
 4. **Render**: Đợi ít nhất 2-3 phút sau khi deploy để app khởi động hoàn toàn
 
 ## 📞 Support

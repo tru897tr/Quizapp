@@ -57,7 +57,10 @@ async function initializeEmailTransporter() {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
-            timeout: 10000,
+            timeout: 5000,
+            connectionTimeout: 5000,
+            greetingTimeout: 5000,
+            socketTimeout: 5000,
             pool: true
         });
         
@@ -65,7 +68,8 @@ async function initializeEmailTransporter() {
         log('Email transporter verified successfully');
         return true;
     } catch (error) {
-        logError('Email transporter verification failed', error);
+        logError('Email transporter verification failed (non-critical)', error);
+        console.log('⚠️  Note: Password reset will not work without email. App continues normally.');
         transporter = null;
         return false;
     }
@@ -929,7 +933,7 @@ async function startServer() {
         if (emailConnected) {
             console.log('✓ Email service connected');
         } else {
-            console.log('⚠ Email service not configured');
+            console.log('⚠ Email service not configured (password reset disabled)');
         }
         
         app.listen(PORT, async () => {
@@ -938,6 +942,7 @@ async function startServer() {
             console.log(`✓ Debug mode: ${DEBUG ? 'ON' : 'OFF'}`);
             console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🎉 Quiz Master is ready!');
             
             if (emailConnected) {
                 await sendTestEmail();
