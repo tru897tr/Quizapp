@@ -1,4 +1,4 @@
-function openSidebar(){
+function openSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     sidebar.classList.add('open');
@@ -6,7 +6,7 @@ function openSidebar(){
     document.body.classList.add('no-scroll');
 }
 
-function closeSidebar(){
+function closeSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     sidebar.classList.remove('open');
@@ -14,39 +14,59 @@ function closeSidebar(){
     document.body.classList.remove('no-scroll');
 }
 
-async function checkAuth(){
-    try{
+async function checkAuth() {
+    try {
         const res = await fetch('/api/verify');
-        if(res.ok){
+        if (res.ok) {
             const data = await res.json();
             showUserMenu(data.user.username);
             document.getElementById('sidebarLogin').style.display = 'none';
-        }else{
+        } else {
             showLoginButton();
             document.getElementById('sidebarLogin').style.display = 'flex';
         }
-    }catch(err){
+    } catch (err) {
         showLoginButton();
     }
 }
 
-function showUserMenu(username){
+function showUserMenu(username) {
     const menu = document.getElementById('userMenu');
-    menu.innerHTML = '<div class="user-info"><span>👤 ' + username + '</span></div><button class="btn btn-secondary" onclick="logout()" style="padding:11px 22px;">Đăng xuất</button>';
+    menu.innerHTML = `
+        <div class="user-info">
+            <span>👤 ${username}</span>
+        </div>
+    `;
 }
 
-function showLoginButton(){
+function showLoginButton() {
     const menu = document.getElementById('userMenu');
     menu.innerHTML = '<a href="/login" class="btn btn-primary">Đăng nhập</a>';
 }
 
-async function logout(){
-    if(confirm('Bạn có chắc muốn đăng xuất?')){
-        try{
-            await fetch('/api/logout', {method:'POST'});
-        }catch(err){}
+async function logout() {
+    if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+        } catch (err) {}
         window.location.href = '/';
     }
 }
 
-window.addEventListener('DOMContentLoaded', checkAuth);
+// Set active menu item
+function setActiveMenuItem() {
+    const currentPath = window.location.pathname;
+    const menuItems = document.querySelectorAll('.sidebar-menu a');
+    
+    menuItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPath || (currentPath.startsWith(href) && href !== '/')) {
+            item.classList.add('active-menu-item');
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+    setActiveMenuItem();
+});

@@ -28,7 +28,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 async function loadQuiz() {
     try {
-        const response = await fetch(`/api/quiz/${quizId}`);
+        const response = await fetch(`/api/quiz/${quizId}`, {
+            headers: { 'X-Request-Full-Data': 'true' }
+        });
         const result = await response.json();
         
         if (!result.success) {
@@ -43,26 +45,11 @@ async function loadQuiz() {
             return;
         }
         
-        // Load full quiz data with correct answers
-        const fullResponse = await fetch(`/api/quiz/${quizId}`, {
-            headers: { 'X-Request-Full-Data': 'true' }
-        });
-        const fullData = await fullResponse.json();
-        
         document.getElementById('quizTitle').value = result.quiz.title;
         document.getElementById('publicToggle').checked = result.quiz.isPublic;
         document.getElementById('visibilityStatus').textContent = result.quiz.isPublic ? 'Công khai' : 'Riêng tư';
         
-        // We need to get the original quiz data from server with correct answers
-        // For now, reconstruct from what we have
-        questions = result.quiz.questions.map(q => ({
-            question: q.question,
-            options: q.options.map(opt => ({
-                text: opt.text,
-                isCorrect: false // Will need to be set from actual quiz data
-            }))
-        }));
-        
+        questions = result.quiz.questions;
         renderQuestions();
     } catch (error) {
         alert('Lỗi tải quiz');
@@ -71,12 +58,10 @@ async function loadQuiz() {
 }
 
 document.getElementById('publicToggle').addEventListener('change', (e) => {
-    const status = document.getElementById('visibilityStatus');
-    status.textContent = e.target.checked ? 'Công khai' : 'Riêng tư';
+    document.getElementById('visibilityStatus').textContent = e.target.checked ? 'Công khai' : 'Riêng tư';
 });
 
 function addQuestion() {
-    const questionIndex = questions.length;
     questions.push({
         question: '',
         options: [
@@ -89,7 +74,7 @@ function addQuestion() {
 
 function deleteQuestion(index) {
     if (questions.length === 1) {
-        showMessage('Phải có ít nhất một câu hỏi', 'error');
+        showToast('Phải có ít nhất một câu hỏi', 'error');
         return;
     }
     if (confirm('Bạn có chắc muốn xóa câu hỏi này?')) {
@@ -100,7 +85,7 @@ function deleteQuestion(index) {
 
 function addOption(questionIndex) {
     if (questions[questionIndex].options.length >= 6) {
-        showMessage('Tối đa 6 đáp án cho mỗi câu hỏi', 'error');
+        showToast('Tối đa 6 đáp án cho mỗi câu hỏi', 'error');
         return;
     }
     questions[questionIndex].options.push({ text: '', isCorrect: false });
@@ -109,7 +94,7 @@ function addOption(questionIndex) {
 
 function deleteOption(questionIndex, optionIndex) {
     if (questions[questionIndex].options.length <= 2) {
-        showMessage('Phải có ít nhất 2 đáp án', 'error');
+        showToast('Phải có ít nhất 2 đáp án', 'error');
         return;
     }
     questions[questionIndex].options.splice(optionIndex, 1);
@@ -125,16 +110,9 @@ function updateOption(questionIndex, optionIndex, value) {
 }
 
 function toggleCorrect(questionIndex, optionIndex) {
-    const currentCorrect = questions[questionIndex].options.filter(o => o.isCorrect).length;
-    const isChecked = questions[questionIndex].options[optionIndex].isCorrect;
-    
-    if (!isChecked && currentCorrect >= 1) {
-        showMessage('Chỉ được chọn 1 đáp án đúng', 'error');
-        renderQuestions();
-        return;
-    }
-    
-    questions[questionIndex].options[optionIndex].isCorrect = !isChecked;
+    questions[questionIndex].options.forEach((opt, idx) => {
+        opt.isCorrect = idx === optionIndex;
+    });
     renderQuestions();
 }
 
@@ -194,7 +172,7 @@ async function updateQuiz() {
     const isPublic = document.getElementById('publicToggle').checked;
     
     if (!title) {
-        showMessage('Vui lòng nhập tiêu đề quiz', 'error');
+        showToast('Vui lòng nhập tiêu đề quiz', 'error');
         return;
     }
     
@@ -202,20 +180,20 @@ async function updateQuiz() {
         const q = questions[i];
         
         if (!q.question.trim()) {
-            showMessage(`Câu hỏi ${i + 1}: Vui lòng nhập nội dung`, 'error');
+            showToast(`Câu hỏi ${i + 1}: Vui lòng nhập nội dung`, 'error');
             return;
         }
         
         for (let j = 0; j < q.options.length; j++) {
             if (!q.options[j].text.trim()) {
-                showMessage(`Câu hỏi ${i + 1}: Đáp án ${String.fromCharCode(65 + j)} không được trống`, 'error');
+                showToast(`Câu hỏi ${i + 1}: Đáp án ${String.fromCharCode(65 + j)} không được trống`, 'error');
                 return;
             }
         }
         
         const correctCount = q.options.filter(o => o.isCorrect).length;
         if (correctCount !== 1) {
-            showMessage(`Câu hỏi ${i + 1}: Phải chọn đúng 1 đáp án đúng`, 'error');
+            showToast(`Câu hỏi ${i + 1}: Phải chọn đúng 1 đáp án đúng`, 'error');
             return;
         }
     }
@@ -230,30 +208,14 @@ async function updateQuiz() {
         const result = await response.json();
         
         if (result.success) {
-            showMessage(result.message, 'success');
+            showToast(result.message, 'success');
             setTimeout(() => {
                 window.location.href = '/myactivities';
             }, 1500);
         } else {
-            showMessage(result.error, 'error');
+            showToast(result.error, 'error');
         }
     } catch (error) {
-        showMessage('Lỗi kết nối', 'error');
+        showToast('Lỗi kết nối', 'error');
     }
-}
-
-function showMessage(text, type) {
-    const msg = document.getElementById('message');
-    msg.textContent = text;
-    msg.className = 'message ' + type + ' show';
-    msg.style.position = 'fixed';
-    msg.style.top = '20px';
-    msg.style.left = '50%';
-    msg.style.transform = 'translateX(-50%)';
-    msg.style.zIndex = '10000';
-    msg.style.maxWidth = '90%';
-    
-    setTimeout(() => {
-        msg.className = 'message';
-    }, 3000);
 }
