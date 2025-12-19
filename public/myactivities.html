@@ -12,7 +12,7 @@
 <div class="myactivities-container">
 <div class="activities-header">
 <div class="container" style="display:flex;align-items:center;gap:20px">
-<button class="menu-toggle" onclick="window.location.href='/'">
+<button class="menu-toggle" onclick="openSidebar()">
 <span></span><span></span><span></span>
 </button>
 <a href="/" class="logo" style="margin:0 auto">
@@ -37,6 +37,34 @@
 </div>
 </div>
 </div>
+
+<div class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-title">Menu</div>
+<button class="close-sidebar" onclick="closeSidebar()">✕</button>
+</div>
+<div class="sidebar-menu">
+<a href="/">🏠 Trang chủ</a>
+<a href="/create">➕ Tạo câu hỏi</a>
+<a href="/myactivities">📚 Danh sách câu hỏi</a>
+<a href="/settings">⚙️ Cài đặt</a>
+</div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<script>
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('show');
+    document.body.classList.add('no-scroll');
+}
+
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+    document.body.classList.remove('no-scroll');
+}
+</script>
 <script src="/js/toast.js"></script>
 <script src="/js/myactivities.js"></script>
 </body>
