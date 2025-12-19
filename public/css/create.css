@@ -35,7 +35,7 @@
     border:2px solid var(--border);
     border-radius:14px;
     background:var(--white);
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
 }
 
 .title-input:focus{
@@ -61,8 +61,8 @@
     padding:32px;
     margin-bottom:24px;
     border:2px solid var(--border);
-    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
-    animation:slideIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
+    transition:all 0.2s ease;
+    animation:slideIn 0.3s ease;
 }
 
 @keyframes slideIn{
@@ -103,7 +103,7 @@
     border-radius:50%;
     cursor:pointer;
     font-size:18px;
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -126,7 +126,7 @@
     border:2px solid var(--border);
     border-radius:12px;
     background:var(--light-gray);
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     resize:vertical;
     min-height:80px;
     font-family:inherit;
@@ -147,14 +147,14 @@
 
 .option-item{
     display:grid;
-    grid-template-columns:40px 1fr 50px;
+    grid-template-columns:40px 1fr 50px 50px;
     gap:12px;
     align-items:center;
     padding:14px 18px;
     background:var(--light-gray);
     border-radius:10px;
     border:2px solid transparent;
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
 }
 
 .option-item:hover{
@@ -181,7 +181,7 @@
     border:2px solid var(--border);
     border-radius:9px;
     background:var(--white);
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
 }
 
 .option-input:focus{
@@ -213,7 +213,7 @@
     border-radius:50%;
     cursor:pointer;
     font-size:16px;
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -236,7 +236,7 @@
     cursor:pointer;
     font-weight:600;
     font-size:15px;
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
 }
 
 .add-option-btn:hover:not(:disabled){
@@ -262,7 +262,7 @@
     cursor:pointer;
     font-weight:700;
     font-size:17px;
-    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     display:block;
 }
 
@@ -333,7 +333,7 @@
     bottom:0;
     background:#cbd5e1;
     border-radius:28px;
-    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
 }
 
 .slider:before{
@@ -345,7 +345,7 @@
     bottom:3px;
     background:white;
     border-radius:50%;
-    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     box-shadow:0 2px 4px rgba(0,0,0,0.2);
 }
 
@@ -372,7 +372,7 @@ input:checked + .slider:before{
     font-weight:700;
     font-size:16px;
     cursor:pointer;
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     box-shadow:0 4px 14px rgba(16,185,129,0.3);
 }
 
@@ -392,7 +392,7 @@ input:checked + .slider:before{
     }
     
     .option-item{
-        grid-template-columns:36px 1fr 48px;
+        grid-template-columns:36px 1fr 48px 48px;
     }
     
     .action-panel-content{

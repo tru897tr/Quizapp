@@ -7,7 +7,7 @@
 .toast.toast-info{border-color:#3b82f6;color:#1e40af}
 .toast.toast-warning{border-color:#f59e0b;color:#92400e}
 .toast-icon{font-size:24px;flex-shrink:0}
-.toast-message{flex:1;font-size:14px;font-weight:500;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word}
+.toast-message{flex:1;font-size:14px;font-weight:500;line-height:1.4;word-wrap:break-word}
 .toast-close{width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s ease}
 .toast-close:hover{background:rgba(0,0,0,0.1);transform:scale(1.1)}
 @keyframes slideInRight{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}

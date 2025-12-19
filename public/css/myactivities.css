@@ -53,10 +53,10 @@
     border-radius:16px;
     padding:24px;
     border:2px solid var(--border);
-    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     position:relative;
     cursor:pointer;
-    animation:fadeInScale 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);
+    animation:fadeInScale 0.3s ease;
 }
 
 @keyframes fadeInScale{
@@ -140,7 +140,7 @@
     border-radius:50%;
     cursor:pointer;
     font-size:20px;
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -164,7 +164,7 @@
     opacity:0;
     pointer-events:none;
     transform:translateY(-10px);
-    transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
 }
 
 .dropdown-menu.show{
@@ -184,7 +184,7 @@
     font-size:14px;
     font-weight:500;
     color:var(--dark);
-    transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
+    transition:all 0.2s ease;
     display:flex;
     align-items:center;
     gap:10px;
@@ -233,15 +233,5 @@
     
     .activities-title{
         font-size:28px;
-    }
-}
-
-@media (max-width:480px){
-    .activities-content{
-        padding:24px 16px;
-    }
-    
-    .quiz-card{
-        padding:20px;
     }
 }
