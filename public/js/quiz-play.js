@@ -35,6 +35,8 @@ function displayQuestion(){
 const q=quiz.questions[currentQuestion],userAnswer=userAnswers[currentQuestion];
 document.getElementById('currentQ').textContent=currentQuestion+1;
 document.getElementById('progress').style.width=((currentQuestion)/quiz.questionCount)*100+'%';
+
+// CRITICAL FIX: Support A-F options, not just A-D
 let optionsHTML='';
 q.options.forEach((opt,idx)=>{
 let classes='option',clickable=true;
@@ -44,8 +46,11 @@ if(userAnswer.wrongAttempts&&userAnswer.wrongAttempts.includes(idx)){classes+=' 
 if(userAnswer.isCorrect){classes+=' disabled';clickable=false}
 }
 const onclickAttr=clickable?`onclick="checkAnswer(${idx})"`:'';
-optionsHTML+=`<div class="${classes}" ${onclickAttr}><div class="option-label">${String.fromCharCode(65+idx)}</div><div>${opt.text}</div></div>`
+// Generate label A-F (support up to 6 options)
+const label = String.fromCharCode(65+idx);
+optionsHTML+=`<div class="${classes}" ${onclickAttr}><div class="option-label">${label}</div><div>${opt.text}</div></div>`
 });
+
 const isAnswered=userAnswer&&userAnswer.isCorrect===true,prevDisabled=currentQuestion===0?'disabled':'',nextDisabled=!isAnswered?'disabled':'';
 document.getElementById('quizArea').innerHTML=`<div class="question-card"><div class="question-text">${q.question}</div><div class="options-grid">${optionsHTML}</div><div class="quiz-navigation"><button class="nav-button prev" onclick="prevQuestion()" ${prevDisabled}>← Quay lại</button><button class="nav-button next" onclick="nextQuestion()" ${nextDisabled}>Tiếp tục →</button></div></div>`
 }
