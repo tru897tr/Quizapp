@@ -5,18 +5,25 @@ const cookieParser = require('cookie-parser');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DEBUG = process.env.DEBUG === 'true';
+const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK || '';
 
-// Logging function
+// Logging function with Discord webhook
 function log(message, data = null) {
     if (DEBUG) {
         console.log(`[${new Date().toISOString()}] ${message}`);
         if (data) {
             console.log('Data:', JSON.stringify(data, null, 2));
         }
+    }
+    
+    // Send to Discord if webhook configured
+    if (DISCORD_WEBHOOK) {
+        sendDiscordLog(message, data);
     }
 }
 
@@ -28,6 +35,54 @@ function logError(message, error) {
             console.error('Stack trace:', error.stack);
         }
     }
+    
+    // Send error to Discord
+    if (DISCORD_WEBHOOK) {
+        sendDiscordLog(`❌ ERROR: ${message}`, error ? { error: error.message, stack: error.stack } : null);
+    }
+}
+
+function sendDiscordLog(message, data = null) {
+    if (!DISCORD_WEBHOOK) return;
+    
+    const payload = {
+        embeds: [{
+            title: '📊 Quiz Master Log',
+            description: message,
+            color: message.includes('ERROR') ? 15158332 : 3447003,
+            fields: data ? [{
+                name: 'Details',
+                value: '```json\n' + JSON.stringify(data, null, 2).substring(0, 1000) + '\n```'
+            }] : [],
+            timestamp: new Date().toISOString()
+        }]
+    };
+    
+    const webhookData = JSON.stringify(payload);
+    const url = new URL(DISCORD_WEBHOOK);
+    
+    const options = {
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(webhookData)
+        }
+    };
+    
+    const req = https.request(options, (res) => {
+        if (res.statusCode !== 204) {
+            console.error(`Discord webhook failed: ${res.statusCode}`);
+        }
+    });
+    
+    req.on('error', (e) => {
+        console.error('Discord webhook error:', e.message);
+    });
+    
+    req.write(webhookData);
+    req.end();
 }
 
 app.use(express.json());
@@ -41,8 +96,113 @@ const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const RESULTS_FILE = path.join(DATA_DIR, 'results.json');
 const RESET_TOKENS_FILE = path.join(DATA_DIR, 'reset_tokens.json');
 const QUIZZES_FILE = path.join(DATA_DIR, 'quizzes.json');
+const BLOCKED_DEVICES_FILE = path.join(DATA_DIR, 'blocked_devices.json');
+const DEVICE_LOGS_FILE = path.join(DATA_DIR, 'device_logs.json');
 
 let transporter = null;
+
+// Device detection utility
+function getDeviceInfo(req) {
+    const userAgent = req.get('user-agent') || '';
+    const ip = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+    
+    let deviceType = 'Unknown';
+    let os = 'Unknown';
+    let browser = 'Unknown';
+    
+    // Detect device type
+    if (/mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent)) {
+        deviceType = 'Mobile';
+    } else if (/tablet|ipad|playbook|silk/i.test(userAgent)) {
+        deviceType = 'Tablet';
+    } else {
+        deviceType = 'Desktop';
+    }
+    
+    // Detect OS
+    if (/windows/i.test(userAgent)) os = 'Windows';
+    else if (/android/i.test(userAgent)) os = 'Android';
+    else if (/iphone|ipad|ipod/i.test(userAgent)) os = 'iOS';
+    else if (/mac/i.test(userAgent)) os = 'macOS';
+    else if (/linux/i.test(userAgent)) os = 'Linux';
+    
+    // Detect browser
+    if (/chrome/i.test(userAgent) && !/edge|edg/i.test(userAgent)) browser = 'Chrome';
+    else if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) browser = 'Safari';
+    else if (/firefox/i.test(userAgent)) browser = 'Firefox';
+    else if (/edge|edg/i.test(userAgent)) browser = 'Edge';
+    else if (/opera|opr/i.test(userAgent)) browser = 'Opera';
+    
+    return {
+        ip: ip.replace('::ffff:', ''),
+        userAgent,
+        deviceType,
+        os,
+        browser,
+        timestamp: Date.now()
+    };
+}
+
+// Check if device is blocked
+async function isDeviceBlocked(deviceInfo) {
+    try {
+        const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
+        return blockedDevices.some(blocked => 
+            blocked.ip === deviceInfo.ip || 
+            blocked.userAgent === deviceInfo.userAgent
+        );
+    } catch (error) {
+        return false;
+    }
+}
+
+// Log device access
+async function logDeviceAccess(req, action, additionalInfo = {}) {
+    try {
+        const deviceInfo = getDeviceInfo(req);
+        const logs = await readJSON(DEVICE_LOGS_FILE, []);
+        
+        const logEntry = {
+            ...deviceInfo,
+            action,
+            ...additionalInfo,
+            timestamp: Date.now()
+        };
+        
+        logs.push(logEntry);
+        
+        // Keep only last 1000 logs
+        if (logs.length > 1000) {
+            logs.shift();
+        }
+        
+        await writeJSON(DEVICE_LOGS_FILE, logs);
+        
+        // Send to Discord
+        log(`📱 Device Access: ${action}`, {
+            ip: deviceInfo.ip,
+            device: `${deviceInfo.deviceType} - ${deviceInfo.os}`,
+            browser: deviceInfo.browser,
+            action,
+            ...additionalInfo
+        });
+    } catch (error) {
+        logError('Failed to log device access', error);
+    }
+}
+
+// Middleware to check blocked devices
+async function checkBlockedDevice(req, res, next) {
+    const deviceInfo = getDeviceInfo(req);
+    const blocked = await isDeviceBlocked(deviceInfo);
+    
+    if (blocked) {
+        log('🚫 Blocked device attempted access', deviceInfo);
+        return res.redirect('/blocked');
+    }
+    
+    next();
+}
 
 async function initializeEmailTransporter() {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -65,96 +225,32 @@ async function initializeEmailTransporter() {
         });
         
         await transporter.verify();
-        log('Email transporter verified successfully');
+        log('✅ Email transporter verified successfully');
         return true;
     } catch (error) {
         logError('Email transporter verification failed (non-critical)', error);
-        console.log('⚠️  Note: Password reset will not work without email. App continues normally.');
         transporter = null;
         return false;
-    }
-}
-
-async function sendTestEmail() {
-    if (!transporter) {
-        log('Skipping test email - transporter not initialized');
-        return;
-    }
-    
-    try {
-        const testEmail = {
-            from: `"Quiz Master" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_USER,
-            subject: '✅ Quiz Master - Deploy thành công!',
-            html: `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <style>
-        body { font-family: Arial, sans-serif; background: #f5f7fa; margin: 0; padding: 40px 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px; text-align: center; }
-        .header h1 { color: white; margin: 0; font-size: 28px; }
-        .content { padding: 40px; }
-        .success-icon { font-size: 64px; text-align: center; margin-bottom: 20px; }
-        .info-box { background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin: 20px 0; }
-        .footer { background: #f8fafc; padding: 30px; text-align: center; color: #64748b; font-size: 13px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 Deploy thành công!</h1>
-        </div>
-        <div class="content">
-            <div class="success-icon">✅</div>
-            <p style="font-size: 18px; text-align: center; color: #1e293b; margin-bottom: 30px;">
-                <strong>Quiz Master</strong> đã được deploy thành công!
-            </p>
-            <div class="info-box">
-                <strong>📊 Thông tin hệ thống:</strong><br>
-                • Thời gian: ${new Date().toLocaleString('vi-VN')}<br>
-                • Port: ${PORT}<br>
-                • Email service: Connected ✓<br>
-                • Debug mode: ${DEBUG ? 'ON' : 'OFF'}
-            </div>
-            <p style="color: #64748b; text-align: center; margin-top: 30px;">
-                Hệ thống đã sẵn sàng hoạt động!
-            </p>
-        </div>
-        <div class="footer">
-            <p><strong>Quiz Master</strong></p>
-            <p>© 2025 Quiz Master - All rights reserved</p>
-        </div>
-    </div>
-</body>
-</html>`
-        };
-        
-        await transporter.sendMail(testEmail);
-        log('Test email sent successfully');
-    } catch (error) {
-        logError('Failed to send test email', error);
     }
 }
 
 async function ensureDataDir() {
     try {
         await fs.mkdir(DATA_DIR, { recursive: true });
-        log('Data directory ensured');
         
         const files = [
             { path: USERS_FILE, default: {} },
             { path: SESSIONS_FILE, default: {} },
             { path: RESULTS_FILE, default: [] },
             { path: RESET_TOKENS_FILE, default: {} },
-            { path: QUIZZES_FILE, default: { nextId: 1, quizzes: {} } }
+            { path: QUIZZES_FILE, default: { nextId: 1, quizzes: {} } },
+            { path: BLOCKED_DEVICES_FILE, default: [] },
+            { path: DEVICE_LOGS_FILE, default: [] }
         ];
         
         for (const file of files) {
             try {
                 await fs.access(file.path);
-                log(`File exists: ${path.basename(file.path)}`);
             } catch {
                 await fs.writeFile(file.path, JSON.stringify(file.default, null, 2));
                 log(`File created: ${path.basename(file.path)}`);
@@ -171,7 +267,6 @@ async function readJSON(filepath, defaultValue = {}) {
         const data = await fs.readFile(filepath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        log(`Error reading ${path.basename(filepath)}, using default value`);
         return defaultValue;
     }
 }
@@ -179,7 +274,6 @@ async function readJSON(filepath, defaultValue = {}) {
 async function writeJSON(filepath, data) {
     try {
         await fs.writeFile(filepath, JSON.stringify(data, null, 2));
-        log(`File written: ${path.basename(filepath)}`);
     } catch (error) {
         logError(`Error writing ${path.basename(filepath)}`, error);
         throw error;
@@ -211,7 +305,6 @@ async function authenticate(req, res, next) {
     const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
     
     if (!token) {
-        log('Authentication failed: No token provided');
         return res.status(401).json({ error: 'Chưa đăng nhập' });
     }
     
@@ -219,7 +312,6 @@ async function authenticate(req, res, next) {
     const session = sessions[token];
     
     if (!session || session.expiresAt < Date.now()) {
-        log('Authentication failed: Invalid or expired token');
         res.clearCookie('accessToken');
         return res.status(401).json({ error: 'Phiên đăng nhập đã hết hạn' });
     }
@@ -228,27 +320,122 @@ async function authenticate(req, res, next) {
     req.username = session.username;
     req.token = token;
     
-    log(`Authenticated user: ${req.username}`);
     next();
 }
 
-// Request logging middleware
+// Apply device blocking check to all routes
+app.use(checkBlockedDevice);
+
+// Device info logging middleware
 if (DEBUG) {
     app.use((req, res, next) => {
+        const deviceInfo = getDeviceInfo(req);
         log(`${req.method} ${req.path}`, {
-            ip: req.ip,
-            userAgent: req.get('user-agent')?.substring(0, 50)
+            ip: deviceInfo.ip,
+            device: `${deviceInfo.deviceType} - ${deviceInfo.os}`,
+            browser: deviceInfo.browser
         });
         next();
     });
 }
+
+// ==================== DEVICE MANAGEMENT APIs ====================
+
+// Get device info
+app.get('/api/device-info', async (req, res) => {
+    try {
+        const deviceInfo = getDeviceInfo(req);
+        await logDeviceAccess(req, 'device-info-request');
+        res.json({ success: true, device: deviceInfo });
+    } catch (error) {
+        logError('Get device info error', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Block device API
+app.post('/api/block-device', async (req, res) => {
+    try {
+        const { ip, userAgent, deviceType, os, browser, reason } = req.body;
+        
+        if (!ip && !userAgent) {
+            return res.status(400).json({ error: 'Cần ít nhất IP hoặc User-Agent' });
+        }
+        
+        const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
+        
+        const blockInfo = {
+            ip: ip || 'N/A',
+            userAgent: userAgent || 'N/A',
+            deviceType: deviceType || 'Unknown',
+            os: os || 'Unknown',
+            browser: browser || 'Unknown',
+            reason: reason || 'Không rõ lý do',
+            blockedAt: Date.now(),
+            blockedBy: 'admin'
+        };
+        
+        blockedDevices.push(blockInfo);
+        await writeJSON(BLOCKED_DEVICES_FILE, blockedDevices);
+        
+        log('🚫 Device blocked', blockInfo);
+        
+        res.json({ success: true, message: 'Đã chặn thiết bị', blockedDevice: blockInfo });
+    } catch (error) {
+        logError('Block device error', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Get blocked devices list
+app.get('/api/blocked-devices', async (req, res) => {
+    try {
+        const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
+        res.json({ success: true, devices: blockedDevices });
+    } catch (error) {
+        logError('Get blocked devices error', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Unblock device
+app.post('/api/unblock-device', async (req, res) => {
+    try {
+        const { ip, userAgent } = req.body;
+        
+        const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
+        const filtered = blockedDevices.filter(d => 
+            d.ip !== ip && d.userAgent !== userAgent
+        );
+        
+        await writeJSON(BLOCKED_DEVICES_FILE, filtered);
+        
+        log('✅ Device unblocked', { ip, userAgent });
+        
+        res.json({ success: true, message: 'Đã bỏ chặn thiết bị' });
+    } catch (error) {
+        logError('Unblock device error', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+// Get device logs
+app.get('/api/device-logs', async (req, res) => {
+    try {
+        const logs = await readJSON(DEVICE_LOGS_FILE, []);
+        res.json({ success: true, logs: logs.slice(-100).reverse() }); // Last 100 logs
+    } catch (error) {
+        logError('Get device logs error', error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
 
 // ==================== AUTH APIs ====================
 
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password, fullname, email } = req.body;
-        log('Register attempt', { username, email });
+        await logDeviceAccess(req, 'register-attempt', { username, email });
         
         if (!username || !password || !fullname || !email) {
             return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
@@ -269,28 +456,29 @@ app.post('/api/register', async (req, res) => {
         const users = await readJSON(USERS_FILE, {});
         
         if (users[username]) {
-            log('Register failed: username exists', { username });
             return res.status(400).json({ error: 'Tên đăng nhập đã tồn tại' });
         }
         
         const emailExists = Object.values(users).some(u => u.email.toLowerCase() === email.toLowerCase());
         if (emailExists) {
-            log('Register failed: email exists', { email });
             return res.status(400).json({ error: 'Email đã được sử dụng' });
         }
         
         const userId = await generateUserId();
+        const deviceInfo = getDeviceInfo(req);
+        
         users[username] = {
             id: userId,
             username,
             fullname,
             email: email.toLowerCase(),
             password: hashPassword(password),
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            registeredFrom: deviceInfo
         };
         
         await writeJSON(USERS_FILE, users);
-        log('Register successful', { username, userId });
+        log('✅ Register successful', { username, userId });
         
         res.json({ success: true, message: 'Đăng ký thành công! Vui lòng đăng nhập.' });
     } catch (error) {
@@ -302,7 +490,7 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        log('Login attempt', { username });
+        await logDeviceAccess(req, 'login-attempt', { username });
         
         if (!username || !password) {
             return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
@@ -312,19 +500,20 @@ app.post('/api/login', async (req, res) => {
         const user = users[username];
         
         if (!user || user.password !== hashPassword(password)) {
-            log('Login failed: invalid credentials', { username });
             return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
         }
         
         const token = generateToken();
         const sessions = await readJSON(SESSIONS_FILE, {});
         const expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000);
+        const deviceInfo = getDeviceInfo(req);
         
         sessions[token] = {
             userId: user.id,
             username: user.username,
             fullname: user.fullname,
-            expiresAt
+            expiresAt,
+            deviceInfo
         };
         
         await writeJSON(SESSIONS_FILE, sessions);
@@ -336,7 +525,7 @@ app.post('/api/login', async (req, res) => {
             sameSite: 'lax'
         });
         
-        log('Login successful', { username });
+        log('✅ Login successful', { username, device: `${deviceInfo.deviceType} - ${deviceInfo.os}` });
         
         res.json({
             success: true,
@@ -359,7 +548,7 @@ app.post('/api/logout', authenticate, async (req, res) => {
         delete sessions[req.token];
         await writeJSON(SESSIONS_FILE, sessions);
         res.clearCookie('accessToken');
-        log('Logout', { username: req.username });
+        await logDeviceAccess(req, 'logout', { username: req.username });
         res.json({ success: true });
     } catch (error) {
         logError('Logout error', error);
@@ -370,14 +559,13 @@ app.post('/api/logout', authenticate, async (req, res) => {
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
-        log('Forgot password request', { email });
+        await logDeviceAccess(req, 'forgot-password-request', { email });
         
         if (!email || !validateEmail(email)) {
             return res.status(400).json({ error: 'Email không hợp lệ' });
         }
         
         if (!transporter) {
-            log('Email not configured');
             return res.status(500).json({ error: 'Hệ thống email chưa được cấu hình' });
         }
         
@@ -385,7 +573,6 @@ app.post('/api/forgot-password', async (req, res) => {
         const user = Object.values(users).find(u => u.email.toLowerCase() === email.toLowerCase());
         
         if (!user) {
-            log('Email not found', { email });
             return res.status(404).json({ error: 'Không tìm thấy tài khoản với email này' });
         }
         
@@ -404,8 +591,6 @@ app.post('/api/forgot-password', async (req, res) => {
         const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
         const resetUrl = `${baseUrl}/oauth/resetpassword/${resetToken}`;
         
-        log('Reset URL generated', { user: user.username, resetUrl });
-        
         const mailOptions = {
             from: `"Quiz Master" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -416,39 +601,27 @@ app.post('/api/forgot-password', async (req, res) => {
 <body style="font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:40px 20px">
 <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)">
 <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:40px;text-align:center">
-<div style="font-size:48px;margin-bottom:16px">🎓</div>
-<h1 style="color:white;margin:0;font-size:28px">Đặt lại mật khẩu</h1>
+<h1 style="color:white;margin:0;font-size:28px">🔐 Đặt lại mật khẩu</h1>
 </div>
 <div style="padding:40px">
-<p style="color:#64748b;line-height:1.6;margin-bottom:20px">Xin chào <strong>${user.fullname}</strong>,</p>
-<p style="color:#64748b;line-height:1.6;margin-bottom:30px">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>${user.username}</strong>.</p>
+<p>Xin chào <strong>${user.fullname}</strong>,</p>
+<p>Link đặt lại mật khẩu:</p>
 <div style="text-align:center;margin:30px 0">
-<a href="${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:white;padding:16px 48px;text-decoration:none;border-radius:12px;font-weight:600">Đặt lại mật khẩu</a>
+<a href="${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;padding:16px 48px;text-decoration:none;border-radius:12px;font-weight:600">Đặt lại mật khẩu</a>
 </div>
-<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;color:#92400e;font-size:14px">
-<strong>⏱️ QUAN TRỌNG:</strong> Link này chỉ có hiệu lực trong <strong>5 phút</strong>.
-</div>
-</div>
-<div style="background:#f8fafc;padding:30px;text-align:center;color:#94a3b8;font-size:13px;border-top:1px solid #e2e8f0">
-<p><strong>Quiz Master</strong></p>
-<p>© 2025 Quiz Master</p>
+<p style="color:#92400e;background:#fef3c7;padding:16px;border-radius:8px;border-left:4px solid #f59e0b">
+<strong>⏱️ QUAN TRỌNG:</strong> Link chỉ có hiệu lực trong <strong>5 phút</strong>.
+</p>
 </div>
 </div>
 </body>
 </html>`
         };
         
-        try {
-            await transporter.sendMail(mailOptions);
-            log('Reset email sent', { to: email });
-            res.json({ success: true, message: 'Email đã được gửi. Link có hiệu lực 5 phút.' });
-        } catch (emailError) {
-            logError('Email send failed', emailError);
-            return res.status(500).json({ 
-                error: 'Không thể gửi email. Vui lòng kiểm tra cấu hình.',
-                details: DEBUG ? emailError.message : undefined
-            });
-        }
+        await transporter.sendMail(mailOptions);
+        log('📧 Reset email sent', { to: email });
+        
+        res.json({ success: true, message: 'Email đã được gửi. Link có hiệu lực 5 phút.' });
     } catch (error) {
         logError('Forgot password error', error);
         res.status(500).json({ error: 'Lỗi server' });
@@ -458,7 +631,6 @@ app.post('/api/forgot-password', async (req, res) => {
 app.post('/api/reset-password', async (req, res) => {
     try {
         const { token, newPassword } = req.body;
-        log('Reset password attempt');
         
         if (!token || !newPassword) {
             return res.status(400).json({ error: 'Thiếu thông tin' });
@@ -472,15 +644,13 @@ app.post('/api/reset-password', async (req, res) => {
         const resetData = resetTokens[token];
         
         if (!resetData) {
-            log('Invalid reset token');
             return res.status(400).json({ error: 'Link không hợp lệ' });
         }
         
         if (resetData.expiresAt < Date.now()) {
             delete resetTokens[token];
             await writeJSON(RESET_TOKENS_FILE, resetTokens);
-            log('Reset token expired');
-            return res.status(400).json({ error: 'Link đã hết hạn (5 phút)' });
+            return res.status(400).json({ error: 'Link đã hết hạn' });
         }
         
         const users = await readJSON(USERS_FILE, {});
@@ -501,7 +671,7 @@ app.post('/api/reset-password', async (req, res) => {
         }
         await writeJSON(SESSIONS_FILE, newSessions);
         
-        log('Password reset successful', { username: resetData.username });
+        log('✅ Password reset successful', { username: resetData.username });
         
         res.json({ success: true, message: 'Mật khẩu đã được đặt lại thành công' });
     } catch (error) {
@@ -515,7 +685,7 @@ app.post('/api/reset-password', async (req, res) => {
 app.post('/api/quiz/create', authenticate, async (req, res) => {
     try {
         const { title, questions, isPublic } = req.body;
-        log('Create quiz attempt', { title, username: req.username });
+        await logDeviceAccess(req, 'quiz-create', { title, username: req.username });
         
         if (!title || !title.trim()) {
             return res.status(400).json({ error: 'Vui lòng nhập tiêu đề' });
@@ -562,7 +732,7 @@ app.post('/api/quiz/create', authenticate, async (req, res) => {
         quizzesData.nextId = quizId + 1;
         
         await writeJSON(QUIZZES_FILE, quizzesData);
-        log('Quiz created', { quizId, title });
+        log('✅ Quiz created', { quizId, title });
         
         res.json({ success: true, quizId, message: 'Tạo quiz thành công!' });
     } catch (error) {
@@ -573,7 +743,6 @@ app.post('/api/quiz/create', authenticate, async (req, res) => {
 
 app.get('/api/quiz/my-activities', authenticate, async (req, res) => {
     try {
-        log('Get my activities', { username: req.username });
         const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
         const myQuizzes = Object.values(quizzesData.quizzes)
             .filter(q => q.authorId === req.userId)
@@ -587,7 +756,6 @@ app.get('/api/quiz/my-activities', authenticate, async (req, res) => {
                 updatedAt: q.updatedAt
             }));
         
-        log('My activities retrieved', { count: myQuizzes.length });
         res.json({ success: true, quizzes: myQuizzes });
     } catch (error) {
         logError('Get my activities error', error);
@@ -598,13 +766,12 @@ app.get('/api/quiz/my-activities', authenticate, async (req, res) => {
 app.get('/api/quiz/:id', async (req, res) => {
     try {
         const quizId = parseInt(req.params.id);
-        log('Get quiz', { quizId });
+        await logDeviceAccess(req, 'quiz-view', { quizId });
         
         const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
         const quiz = quizzesData.quizzes[quizId];
         
         if (!quiz) {
-            log('Quiz not found', { quizId });
             return res.status(404).json({ error: 'Không tìm thấy quiz' });
         }
         
@@ -614,12 +781,10 @@ app.get('/api/quiz/:id', async (req, res) => {
         const isOwner = session && session.userId === quiz.authorId;
         
         if (!quiz.isPublic && !isOwner) {
-            log('Quiz access denied', { quizId });
             return res.status(404).json({ error: 'Không tìm thấy quiz' });
         }
         
         if (req.headers['x-request-full-data'] === 'true' && isOwner) {
-            log('Returning full quiz data for editing', { quizId });
             return res.json({ success: true, quiz: quiz });
         }
         
@@ -637,7 +802,6 @@ app.get('/api/quiz/:id', async (req, res) => {
             }))
         };
         
-        log('Quiz retrieved', { quizId, isOwner });
         res.json({ success: true, quiz: safeQuiz });
     } catch (error) {
         logError('Get quiz error', error);
@@ -649,7 +813,6 @@ app.post('/api/quiz/:id/check-answer', async (req, res) => {
     try {
         const quizId = parseInt(req.params.id);
         const { questionIndex, selectedOption } = req.body;
-        log('Check answer', { quizId, questionIndex, selectedOption });
         
         const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
         const quiz = quizzesData.quizzes[quizId];
@@ -666,8 +829,6 @@ app.post('/api/quiz/:id/check-answer', async (req, res) => {
         const isCorrect = question.options[selectedOption]?.isCorrect === true;
         const correctIndex = question.options.findIndex(o => o.isCorrect);
         
-        log('Answer checked', { isCorrect, correctIndex });
-        
         res.json({ 
             success: true, 
             isCorrect,
@@ -683,7 +844,6 @@ app.put('/api/quiz/:id', authenticate, async (req, res) => {
     try {
         const quizId = parseInt(req.params.id);
         const { title, questions, isPublic } = req.body;
-        log('Update quiz', { quizId, title });
         
         const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
         const quiz = quizzesData.quizzes[quizId];
@@ -693,7 +853,6 @@ app.put('/api/quiz/:id', authenticate, async (req, res) => {
         }
         
         if (quiz.authorId !== req.userId) {
-            log('Update denied - not owner', { quizId });
             return res.status(403).json({ error: 'Bạn không có quyền chỉnh sửa quiz này' });
         }
         
@@ -727,7 +886,7 @@ app.put('/api/quiz/:id', authenticate, async (req, res) => {
         quizzesData.quizzes[quizId] = quiz;
         await writeJSON(QUIZZES_FILE, quizzesData);
         
-        log('Quiz updated', { quizId });
+        log('✅ Quiz updated', { quizId });
         
         res.json({ success: true, message: 'Cập nhật quiz thành công!' });
     } catch (error) {
@@ -739,7 +898,6 @@ app.put('/api/quiz/:id', authenticate, async (req, res) => {
 app.delete('/api/quiz/:id', authenticate, async (req, res) => {
     try {
         const quizId = parseInt(req.params.id);
-        log('Delete quiz', { quizId });
         
         const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
         const quiz = quizzesData.quizzes[quizId];
@@ -749,14 +907,13 @@ app.delete('/api/quiz/:id', authenticate, async (req, res) => {
         }
         
         if (quiz.authorId !== req.userId) {
-            log('Delete denied - not owner', { quizId });
             return res.status(403).json({ error: 'Bạn không có quyền xóa quiz này' });
         }
         
         delete quizzesData.quizzes[quizId];
         await writeJSON(QUIZZES_FILE, quizzesData);
         
-        log('Quiz deleted', { quizId });
+        log('🗑️ Quiz deleted', { quizId });
         
         res.json({ success: true, message: 'Xóa quiz thành công!' });
     } catch (error) {
@@ -768,7 +925,6 @@ app.delete('/api/quiz/:id', authenticate, async (req, res) => {
 app.post('/api/quiz/:id/duplicate', authenticate, async (req, res) => {
     try {
         const quizId = parseInt(req.params.id);
-        log('Duplicate quiz', { quizId });
         
         const quizzesData = await readJSON(QUIZZES_FILE, { nextId: 1, quizzes: {} });
         const originalQuiz = quizzesData.quizzes[quizId];
@@ -795,7 +951,7 @@ app.post('/api/quiz/:id/duplicate', authenticate, async (req, res) => {
         
         await writeJSON(QUIZZES_FILE, quizzesData);
         
-        log('Quiz duplicated', { originalId: quizId, newId: newQuizId });
+        log('📋 Quiz duplicated', { originalId: quizId, newId: newQuizId });
         
         res.json({ success: true, quizId: newQuizId, message: 'Nhân đôi quiz thành công!' });
     } catch (error) {
@@ -807,7 +963,6 @@ app.post('/api/quiz/:id/duplicate', authenticate, async (req, res) => {
 app.post('/api/save-result', authenticate, async (req, res) => {
     try {
         const { quizId, totalTime, avgTime, fastestTime, slowestTime } = req.body;
-        log('Save result', { username: req.username, quizId });
         
         const results = await readJSON(RESULTS_FILE, []);
         results.push({
@@ -821,7 +976,7 @@ app.post('/api/save-result', authenticate, async (req, res) => {
         });
         
         await writeJSON(RESULTS_FILE, results);
-        log('Result saved', { username: req.username });
+        log('📊 Result saved', { username: req.username, totalTime });
         
         res.json({ success: true });
     } catch (error) {
@@ -870,6 +1025,10 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+app.get('/blocked', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'blocked.html'));
+});
+
 app.get('/oauth/login/:token', async (req, res) => {
     const { token } = req.params;
     const sessions = await readJSON(SESSIONS_FILE, {});
@@ -880,7 +1039,6 @@ app.get('/oauth/login/:token', async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
-        log('OAuth login via token', { username: sessions[token].username });
         res.redirect('/');
     } else {
         res.redirect('/login');
@@ -940,12 +1098,19 @@ async function startServer() {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log(`✓ Server running on port ${PORT}`);
             console.log(`✓ Debug mode: ${DEBUG ? 'ON' : 'OFF'}`);
+            console.log(`✓ Discord webhook: ${DISCORD_WEBHOOK ? 'ENABLED' : 'DISABLED'}`);
             console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log('🎉 Quiz Master is ready!');
             
-            if (emailConnected) {
-                await sendTestEmail();
+            // Send startup notification to Discord
+            if (DISCORD_WEBHOOK) {
+                sendDiscordLog('✅ Quiz Master Server Started', {
+                    port: PORT,
+                    environment: process.env.NODE_ENV || 'development',
+                    debug: DEBUG,
+                    email: emailConnected ? 'enabled' : 'disabled'
+                });
             }
         });
     } catch (error) {

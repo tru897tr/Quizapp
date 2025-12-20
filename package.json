@@ -1,7 +1,7 @@
 {
-  "name": "quiz-master-v4",
-  "version": "4.0.0",
-  "description": "Quiz Master với tính năng tạo câu hỏi tùy chỉnh",
+  "name": "quiz-master-complete",
+  "version": "5.0.0",
+  "description": "Quiz Master với device tracking và Discord webhook",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
