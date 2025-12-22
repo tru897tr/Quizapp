@@ -53,7 +53,6 @@ async function logout() {
     }
 }
 
-// Set active menu item
 function setActiveMenuItem() {
     const currentPath = window.location.pathname;
     const menuItems = document.querySelectorAll('.sidebar-menu a');

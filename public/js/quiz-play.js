@@ -36,7 +36,6 @@ const q=quiz.questions[currentQuestion],userAnswer=userAnswers[currentQuestion];
 document.getElementById('currentQ').textContent=currentQuestion+1;
 document.getElementById('progress').style.width=((currentQuestion)/quiz.questionCount)*100+'%';
 
-// CRITICAL FIX: Support A-F options, not just A-D
 let optionsHTML='';
 q.options.forEach((opt,idx)=>{
 let classes='option',clickable=true;
@@ -46,7 +45,6 @@ if(userAnswer.wrongAttempts&&userAnswer.wrongAttempts.includes(idx)){classes+=' 
 if(userAnswer.isCorrect){classes+=' disabled';clickable=false}
 }
 const onclickAttr=clickable?`onclick="checkAnswer(${idx})"`:'';
-// Generate label A-F (support up to 6 options)
 const label = String.fromCharCode(65+idx);
 optionsHTML+=`<div class="${classes}" ${onclickAttr}><div class="option-label">${label}</div><div>${opt.text}</div></div>`
 });

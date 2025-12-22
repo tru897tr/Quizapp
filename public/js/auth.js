@@ -100,7 +100,11 @@ async function submitForgotPassword() {
             alert(result.message);
             hideForgotPassword();
         } else {
-            alert(result.error);
+            if (result.emailDisabled) {
+                alert('Dịch vụ email chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
+            } else {
+                alert(result.error);
+            }
         }
     } catch (error) {
         alert('Lỗi kết nối');
