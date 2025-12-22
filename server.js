@@ -14,75 +14,93 @@ const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK || '';
 
 // Logging function with Discord webhook
 function log(message, data = null) {
+    const timestamp = new Date().toISOString();
     if (DEBUG) {
-        console.log(`[${new Date().toISOString()}] ${message}`);
+        console.log(`[${timestamp}] ${message}`);
         if (data) {
             console.log('Data:', JSON.stringify(data, null, 2));
         }
     }
     
-    // Send to Discord if webhook configured
-    if (DISCORD_WEBHOOK) {
+    // Send to Discord if webhook configured and DEBUG is enabled
+    if (DISCORD_WEBHOOK && DEBUG) {
         sendDiscordLog(message, data);
     }
 }
 
 function logError(message, error) {
-    console.error(`[${new Date().toISOString()}] ERROR: ${message}`);
+    const timestamp = new Date().toISOString();
+    console.error(`[${timestamp}] ERROR: ${message}`);
     if (error) {
-        console.error('Error details:', error);
+        console.error('Error details:', error.message);
         if (DEBUG && error.stack) {
             console.error('Stack trace:', error.stack);
         }
     }
     
-    // Send error to Discord
+    // Always send errors to Discord if webhook configured
     if (DISCORD_WEBHOOK) {
-        sendDiscordLog(`❌ ERROR: ${message}`, error ? { error: error.message, stack: error.stack } : null);
+        sendDiscordLog(`❌ ERROR: ${message}`, error ? { error: error.message } : null);
     }
 }
 
 function sendDiscordLog(message, data = null) {
     if (!DISCORD_WEBHOOK) return;
     
-    const payload = {
-        embeds: [{
-            title: '📊 Quiz Master Log',
-            description: message,
-            color: message.includes('ERROR') ? 15158332 : 3447003,
-            fields: data ? [{
-                name: 'Details',
-                value: '```json\n' + JSON.stringify(data, null, 2).substring(0, 1000) + '\n```'
-            }] : [],
-            timestamp: new Date().toISOString()
-        }]
-    };
-    
-    const webhookData = JSON.stringify(payload);
-    const url = new URL(DISCORD_WEBHOOK);
-    
-    const options = {
-        hostname: url.hostname,
-        path: url.pathname + url.search,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(webhookData)
+    try {
+        const payload = {
+            embeds: [{
+                title: '📊 Quiz Master Log',
+                description: message.substring(0, 2000),
+                color: message.includes('ERROR') ? 15158332 : 3447003,
+                fields: data ? [{
+                    name: 'Details',
+                    value: '```json\n' + JSON.stringify(data, null, 2).substring(0, 900) + '\n```'
+                }] : [],
+                timestamp: new Date().toISOString()
+            }]
+        };
+        
+        const webhookData = JSON.stringify(payload);
+        const url = new URL(DISCORD_WEBHOOK);
+        
+        const options = {
+            hostname: url.hostname,
+            path: url.pathname + url.search,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(webhookData)
+            },
+            timeout: 5000
+        };
+        
+        const req = https.request(options, (res) => {
+            if (res.statusCode !== 204 && DEBUG) {
+                console.error(`Discord webhook failed: ${res.statusCode}`);
+            }
+        });
+        
+        req.on('error', (e) => {
+            if (DEBUG) {
+                console.error('Discord webhook error:', e.message);
+            }
+        });
+        
+        req.on('timeout', () => {
+            req.destroy();
+            if (DEBUG) {
+                console.error('Discord webhook timeout');
+            }
+        });
+        
+        req.write(webhookData);
+        req.end();
+    } catch (error) {
+        if (DEBUG) {
+            console.error('Discord webhook exception:', error.message);
         }
-    };
-    
-    const req = https.request(options, (res) => {
-        if (res.statusCode !== 204) {
-            console.error(`Discord webhook failed: ${res.statusCode}`);
-        }
-    });
-    
-    req.on('error', (e) => {
-        console.error('Discord webhook error:', e.message);
-    });
-    
-    req.write(webhookData);
-    req.end();
+    }
 }
 
 app.use(express.json());
@@ -100,11 +118,12 @@ const BLOCKED_DEVICES_FILE = path.join(DATA_DIR, 'blocked_devices.json');
 const DEVICE_LOGS_FILE = path.join(DATA_DIR, 'device_logs.json');
 
 let transporter = null;
+let emailEnabled = false;
 
 // Device detection utility
 function getDeviceInfo(req) {
     const userAgent = req.get('user-agent') || '';
-    const ip = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+    const ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip || 'unknown').split(',')[0].trim();
     
     let deviceType = 'Unknown';
     let os = 'Unknown';
@@ -148,8 +167,7 @@ async function isDeviceBlocked(deviceInfo) {
     try {
         const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
         return blockedDevices.some(blocked => 
-            blocked.ip === deviceInfo.ip || 
-            blocked.userAgent === deviceInfo.userAgent
+            blocked.ip === deviceInfo.ip
         );
     } catch (error) {
         return false;
@@ -173,31 +191,42 @@ async function logDeviceAccess(req, action, additionalInfo = {}) {
         
         // Keep only last 1000 logs
         if (logs.length > 1000) {
-            logs.shift();
+            logs.splice(0, logs.length - 1000);
         }
         
         await writeJSON(DEVICE_LOGS_FILE, logs);
         
-        // Send to Discord
-        log(`📱 Device Access: ${action}`, {
-            ip: deviceInfo.ip,
-            device: `${deviceInfo.deviceType} - ${deviceInfo.os}`,
-            browser: deviceInfo.browser,
-            action,
-            ...additionalInfo
-        });
+        // Send to Discord only in DEBUG mode
+        if (DEBUG) {
+            log(`📱 Device Access: ${action}`, {
+                ip: deviceInfo.ip,
+                device: `${deviceInfo.deviceType} - ${deviceInfo.os}`,
+                browser: deviceInfo.browser,
+                action,
+                ...additionalInfo
+            });
+        }
     } catch (error) {
-        logError('Failed to log device access', error);
+        if (DEBUG) {
+            logError('Failed to log device access', error);
+        }
     }
 }
 
-// Middleware to check blocked devices
+// Middleware to check blocked devices - CRITICAL: Must exclude /blocked route
 async function checkBlockedDevice(req, res, next) {
+    // Skip blocking check for blocked page and device info API
+    if (req.path === '/blocked' || req.path === '/api/device-info') {
+        return next();
+    }
+    
     const deviceInfo = getDeviceInfo(req);
     const blocked = await isDeviceBlocked(deviceInfo);
     
     if (blocked) {
-        log('🚫 Blocked device attempted access', deviceInfo);
+        if (DEBUG) {
+            log('🚫 Blocked device attempted access', deviceInfo);
+        }
         return res.redirect('/blocked');
     }
     
@@ -206,7 +235,8 @@ async function checkBlockedDevice(req, res, next) {
 
 async function initializeEmailTransporter() {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        log('Email not configured - skipping transporter initialization');
+        console.log('⚠ Email not configured - password reset will be disabled');
+        emailEnabled = false;
         return false;
     }
     
@@ -217,19 +247,29 @@ async function initializeEmailTransporter() {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
-            timeout: 5000,
-            connectionTimeout: 5000,
-            greetingTimeout: 5000,
-            socketTimeout: 5000,
-            pool: true
+            connectionTimeout: 15000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+            pool: true,
+            maxConnections: 5
         });
         
-        await transporter.verify();
-        log('✅ Email transporter verified successfully');
+        // Try to verify with timeout
+        await Promise.race([
+            transporter.verify(),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Verification timeout')), 15000)
+            )
+        ]);
+        
+        console.log('✓ Email service connected successfully');
+        emailEnabled = true;
         return true;
     } catch (error) {
-        logError('Email transporter verification failed (non-critical)', error);
+        console.log('⚠ Email verification failed - password reset will be disabled');
+        console.log('  Reason:', error.message);
         transporter = null;
+        emailEnabled = false;
         return false;
     }
 }
@@ -323,10 +363,10 @@ async function authenticate(req, res, next) {
     next();
 }
 
-// Apply device blocking check to all routes
+// Apply device blocking check to all routes EXCEPT /blocked
 app.use(checkBlockedDevice);
 
-// Device info logging middleware
+// Device info logging middleware - only in DEBUG mode
 if (DEBUG) {
     app.use((req, res, next) => {
         const deviceInfo = getDeviceInfo(req);
@@ -341,7 +381,7 @@ if (DEBUG) {
 
 // ==================== DEVICE MANAGEMENT APIs ====================
 
-// Get device info
+// Get device info - no auth required for blocked page
 app.get('/api/device-info', async (req, res) => {
     try {
         const deviceInfo = getDeviceInfo(req);
@@ -353,26 +393,28 @@ app.get('/api/device-info', async (req, res) => {
     }
 });
 
-// Block device API
-app.post('/api/block-device', async (req, res) => {
+// Block device API - requires auth
+app.post('/api/block-device', authenticate, async (req, res) => {
     try {
-        const { ip, userAgent, deviceType, os, browser, reason } = req.body;
+        const { ip, reason } = req.body;
         
-        if (!ip && !userAgent) {
-            return res.status(400).json({ error: 'Cần ít nhất IP hoặc User-Agent' });
+        if (!ip) {
+            return res.status(400).json({ error: 'Cần IP address' });
         }
         
         const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
         
+        // Check if already blocked
+        const alreadyBlocked = blockedDevices.some(d => d.ip === ip);
+        if (alreadyBlocked) {
+            return res.status(400).json({ error: 'Thiết bị đã bị chặn' });
+        }
+        
         const blockInfo = {
-            ip: ip || 'N/A',
-            userAgent: userAgent || 'N/A',
-            deviceType: deviceType || 'Unknown',
-            os: os || 'Unknown',
-            browser: browser || 'Unknown',
+            ip: ip,
             reason: reason || 'Không rõ lý do',
             blockedAt: Date.now(),
-            blockedBy: 'admin'
+            blockedBy: req.username
         };
         
         blockedDevices.push(blockInfo);
@@ -387,8 +429,8 @@ app.post('/api/block-device', async (req, res) => {
     }
 });
 
-// Get blocked devices list
-app.get('/api/blocked-devices', async (req, res) => {
+// Get blocked devices list - requires auth
+app.get('/api/blocked-devices', authenticate, async (req, res) => {
     try {
         const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
         res.json({ success: true, devices: blockedDevices });
@@ -398,19 +440,17 @@ app.get('/api/blocked-devices', async (req, res) => {
     }
 });
 
-// Unblock device
-app.post('/api/unblock-device', async (req, res) => {
+// Unblock device - requires auth
+app.post('/api/unblock-device', authenticate, async (req, res) => {
     try {
-        const { ip, userAgent } = req.body;
+        const { ip } = req.body;
         
         const blockedDevices = await readJSON(BLOCKED_DEVICES_FILE, []);
-        const filtered = blockedDevices.filter(d => 
-            d.ip !== ip && d.userAgent !== userAgent
-        );
+        const filtered = blockedDevices.filter(d => d.ip !== ip);
         
         await writeJSON(BLOCKED_DEVICES_FILE, filtered);
         
-        log('✅ Device unblocked', { ip, userAgent });
+        log('✅ Device unblocked', { ip });
         
         res.json({ success: true, message: 'Đã bỏ chặn thiết bị' });
     } catch (error) {
@@ -419,11 +459,11 @@ app.post('/api/unblock-device', async (req, res) => {
     }
 });
 
-// Get device logs
-app.get('/api/device-logs', async (req, res) => {
+// Get device logs - requires auth
+app.get('/api/device-logs', authenticate, async (req, res) => {
     try {
         const logs = await readJSON(DEVICE_LOGS_FILE, []);
-        res.json({ success: true, logs: logs.slice(-100).reverse() }); // Last 100 logs
+        res.json({ success: true, logs: logs.slice(-100).reverse() });
     } catch (error) {
         logError('Get device logs error', error);
         res.status(500).json({ error: 'Lỗi server' });
@@ -565,8 +605,11 @@ app.post('/api/forgot-password', async (req, res) => {
             return res.status(400).json({ error: 'Email không hợp lệ' });
         }
         
-        if (!transporter) {
-            return res.status(500).json({ error: 'Hệ thống email chưa được cấu hình' });
+        if (!emailEnabled || !transporter) {
+            return res.status(503).json({ 
+                error: 'Dịch vụ email chưa được cấu hình. Vui lòng liên hệ quản trị viên.',
+                emailDisabled: true
+            });
         }
         
         const users = await readJSON(USERS_FILE, {});
@@ -624,7 +667,7 @@ app.post('/api/forgot-password', async (req, res) => {
         res.json({ success: true, message: 'Email đã được gửi. Link có hiệu lực 5 phút.' });
     } catch (error) {
         logError('Forgot password error', error);
-        res.status(500).json({ error: 'Lỗi server' });
+        res.status(500).json({ error: 'Không thể gửi email. Vui lòng thử lại sau.' });
     }
 });
 
@@ -1087,29 +1130,24 @@ async function startServer() {
         await ensureDataDir();
         console.log('✓ Data directory initialized');
         
-        const emailConnected = await initializeEmailTransporter();
-        if (emailConnected) {
-            console.log('✓ Email service connected');
-        } else {
-            console.log('⚠ Email service not configured (password reset disabled)');
-        }
+        await initializeEmailTransporter();
         
-        app.listen(PORT, async () => {
+        app.listen(PORT, () => {
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log(`✓ Server running on port ${PORT}`);
             console.log(`✓ Debug mode: ${DEBUG ? 'ON' : 'OFF'}`);
             console.log(`✓ Discord webhook: ${DISCORD_WEBHOOK ? 'ENABLED' : 'DISABLED'}`);
+            console.log(`✓ Email service: ${emailEnabled ? 'ENABLED' : 'DISABLED'}`);
             console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log('🎉 Quiz Master is ready!');
             
-            // Send startup notification to Discord
-            if (DISCORD_WEBHOOK) {
+            if (DISCORD_WEBHOOK && DEBUG) {
                 sendDiscordLog('✅ Quiz Master Server Started', {
                     port: PORT,
                     environment: process.env.NODE_ENV || 'development',
                     debug: DEBUG,
-                    email: emailConnected ? 'enabled' : 'disabled'
+                    email: emailEnabled ? 'enabled' : 'disabled'
                 });
             }
         });
