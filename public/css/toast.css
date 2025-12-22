@@ -1,5 +1,9 @@
 .toast-container{position:fixed;top:80px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:12px;max-width:400px;pointer-events:none}
+@media (max-width:768px){.toast-container{top:70px;right:10px;left:10px;max-width:none}}
+@media (max-width:480px){.toast-container{top:60px}}
 .toast{background:var(--white);border-radius:12px;padding:16px 20px;box-shadow:0 8px 24px rgba(0,0,0,0.15);border-left:4px solid;display:flex;align-items:center;gap:14px;min-width:280px;max-width:400px;animation:slideInRight 0.3s ease;pointer-events:all;cursor:pointer;transition:all 0.2s ease;position:relative;overflow:hidden}
+@media (max-width:768px){.toast{min-width:auto;max-width:none;padding:14px 16px;gap:12px}}
+@media (max-width:480px){.toast{padding:12px 14px;gap:10px;border-radius:10px}}
 .toast::after{content:'';position:absolute;bottom:0;left:0;height:3px;background:currentColor;width:100%;animation:shrink 5s linear}
 .toast:hover{transform:translateX(-6px);box-shadow:0 10px 30px rgba(0,0,0,0.2)}
 .toast.toast-success{border-color:#10b981;color:#065f46}
@@ -7,11 +11,13 @@
 .toast.toast-info{border-color:#3b82f6;color:#1e40af}
 .toast.toast-warning{border-color:#f59e0b;color:#92400e}
 .toast-icon{font-size:24px;flex-shrink:0}
+@media (max-width:480px){.toast-icon{font-size:20px}}
 .toast-message{flex:1;font-size:14px;font-weight:500;line-height:1.4;word-wrap:break-word}
+@media (max-width:480px){.toast-message{font-size:13px}}
 .toast-close{width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s ease}
+@media (max-width:480px){.toast-close{width:20px;height:20px;font-size:14px}}
 .toast-close:hover{background:rgba(0,0,0,0.1);transform:scale(1.1)}
 @keyframes slideInRight{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
 @keyframes shrink{from{width:100%}to{width:0}}
 @keyframes slideOutRight{to{opacity:0;transform:translateX(100px)}}
 .toast.removing{animation:slideOutRight 0.3s ease forwards}
-@media (max-width:768px){.toast-container{right:10px;left:10px;max-width:none}.toast{min-width:auto;max-width:none}}
