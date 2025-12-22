@@ -8,8 +8,13 @@
 <style>
 .error-page{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;background:linear-gradient(135deg,var(--light-gray) 0%,var(--white) 100%)}
 .error-content h1{font-size:120px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0}
+@media (max-width:768px){.error-content h1{font-size:80px}}
+@media (max-width:480px){.error-content h1{font-size:60px}}
 .error-content h2{font-size:32px;margin:20px 0;color:var(--dark);font-weight:700}
+@media (max-width:768px){.error-content h2{font-size:26px}}
+@media (max-width:480px){.error-content h2{font-size:22px}}
 .error-content p{color:var(--gray);margin-bottom:32px;font-size:18px}
+@media (max-width:480px){.error-content p{font-size:16px}}
 </style>
 </head>
 <body>

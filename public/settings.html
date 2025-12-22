@@ -32,7 +32,6 @@
 </div>
 </div>
 </div>
-
 <div class="sidebar" id="sidebar">
 <div class="sidebar-header">
 <div class="sidebar-title">Menu</div>
@@ -46,7 +45,6 @@
 </div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
 <script src="/js/toast.js"></script>
 <script>
 function openSidebar() {
@@ -54,15 +52,12 @@ function openSidebar() {
     document.getElementById('sidebarOverlay').classList.add('show');
     document.body.classList.add('no-scroll');
 }
-
 function closeSidebar() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('show');
     document.body.classList.remove('no-scroll');
 }
-
 window.addEventListener('DOMContentLoaded',async()=>{try{const res=await fetch('/api/verify');if(!res.ok){window.location.href='/login';return}const data=await res.json();document.getElementById('userDisplay').textContent=data.user.username}catch(err){window.location.href='/login'}});
-
 async function logout(){if(confirm('Bạn có chắc muốn đăng xuất?')){try{await fetch('/api/logout',{method:'POST'})}catch(err){}window.location.href='/'}}
 </script>
 </body>
