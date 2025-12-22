@@ -236,38 +236,60 @@ async function checkBlockedDevice(req, res, next) {
 async function initializeEmailTransporter() {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.log('⚠ Email not configured - password reset will be disabled');
+        console.log('  Please set EMAIL_USER and EMAIL_PASS in .env file');
         emailEnabled = false;
         return false;
     }
     
     try {
+        // Create transporter with optimized settings for Gmail
         transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false, // Use STARTTLS
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             },
-            connectionTimeout: 15000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
+            connectionTimeout: 30000, // 30 seconds
+            greetingTimeout: 30000,
+            socketTimeout: 30000,
             pool: true,
-            maxConnections: 5
+            maxConnections: 5,
+            maxMessages: 100,
+            tls: {
+                rejectUnauthorized: true,
+                minVersion: 'TLSv1.2'
+            },
+            logger: DEBUG,
+            debug: DEBUG
         });
         
-        // Try to verify with timeout
+        // Try to verify with longer timeout
+        console.log('Connecting to Gmail SMTP server...');
         await Promise.race([
             transporter.verify(),
             new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Verification timeout')), 15000)
+                setTimeout(() => reject(new Error('Connection timeout after 30 seconds')), 30000)
             )
         ]);
         
         console.log('✓ Email service connected successfully');
+        console.log(`  Using: ${process.env.EMAIL_USER}`);
         emailEnabled = true;
         return true;
     } catch (error) {
         console.log('⚠ Email verification failed - password reset will be disabled');
         console.log('  Reason:', error.message);
+        if (error.code) {
+            console.log('  Error code:', error.code);
+        }
+        console.log('  Troubleshooting:');
+        console.log('    1. Check EMAIL_USER is correct Gmail address');
+        console.log('    2. Check EMAIL_PASS is App Password (not regular password)');
+        console.log('    3. Enable 2-Step Verification in Google Account');
+        console.log('    4. Create App Password at: https://myaccount.google.com/apppasswords');
+        console.log('    5. Check network/firewall allows SMTP connections');
         transporter = null;
         emailEnabled = false;
         return false;
