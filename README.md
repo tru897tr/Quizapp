@@ -1,4 +1,4 @@
-# Quiz Master - Hệ thống trắc nghiệm Python
+# Quiz Master - Hệ thống trắc nghiệm
 
 ## 🚀 Tính năng
 
