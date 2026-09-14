@@ -1,0 +1,38 @@
+# ============================================================================
+#  render.yaml - Blueprint trien khai tu dong len Render.com
+#  Cach dung: vao https://dashboard.render.com/blueprints > New Blueprint
+#  Instance > chon repository GitHub chua du an nay > Render se tu doc file
+#  nay va tao san dich vu. Ban chi can dien cac bien moi truong con thieu.
+# ============================================================================
+services:
+  - type: web
+    name: quiz-master
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: BASE_URL
+        sync: false
+      - key: ADMIN_USERNAMES
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: DISCORD_WEBHOOK
+        sync: false
+    # LUU Y: goi "free" cua Render dung o dia tam thoi (ephemeral) - du lieu
+    # trong thu muc data/ se bi XOA moi khi trien khai lai (redeploy) hoac
+    # dich vu bi ngu (sleep) qua lau. Neu can du lieu ton tai lau dai, hay
+    # nang cap len goi co "Persistent Disk" va gan disk vao duong dan /data,
+    # roi doi DATA_DIR trong server.js cho phu hop; hoac chuyen sang mot he
+    # quan tri co so du lieu that (PostgreSQL/MongoDB).
