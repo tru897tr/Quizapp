@@ -1,0 +1,24 @@
+.settings-shell { max-width: 720px; padding-top: 10px; padding-bottom: 60px; display: flex; flex-direction: column; gap: 20px; }
+.settings-card-title { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 800; margin: 0 0 4px; }
+.settings-card-title .icon { color: var(--primary); }
+.settings-card-subtitle { color: var(--gray-500); font-size: 13.5px; margin: 0 0 20px; }
+
+.profile-row { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+.profile-avatar { width: 58px; height: 58px; border-radius: 50%; background: var(--gradient-brand); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; flex-shrink: 0; }
+.profile-name { font-size: 17px; font-weight: 800; }
+.profile-username { color: var(--gray-500); font-size: 13.5px; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+.info-item-label { font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+.info-item-value { font-weight: 700; font-size: 14.5px; }
+
+.session-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--gray-100); }
+.session-row:last-child { border-bottom: none; }
+.session-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--gray-100); color: var(--gray-500); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.session-details { flex: 1; min-width: 0; }
+.session-device { font-weight: 700; font-size: 14px; }
+.session-meta { color: var(--gray-500); font-size: 12.5px; }
+.session-actions { flex-shrink: 0; }
+
+.danger-zone { border-color: #fecaca; }

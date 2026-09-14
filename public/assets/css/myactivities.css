@@ -1,0 +1,14 @@
+.activities-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 26px 0 22px; flex-wrap: wrap; }
+.activities-count { color: var(--gray-500); font-size: 14.5px; font-weight: 600; }
+
+.quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+.quiz-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; display: flex; flex-direction: column; gap: 14px; transition: box-shadow var(--transition), transform var(--transition); }
+.quiz-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.quiz-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.quiz-card-title { font-size: 17px; font-weight: 800; line-height: 1.35; margin: 0; word-break: break-word; }
+.quiz-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--gray-500); font-size: 13px; }
+.quiz-card-meta .icon { width: 15px; height: 15px; }
+.quiz-card-meta-item { display: flex; align-items: center; gap: 5px; }
+.quiz-card-actions { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.quiz-card-actions .btn-primary { flex: 1; }

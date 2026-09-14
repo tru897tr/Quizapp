@@ -1,0 +1,73 @@
+/**
+ * create.css - Dung cho ca trang Tao quiz (create.html) va Sua quiz
+ * (edit.html). Phien ban truoc day CHI CO 2 QUY TAC CSS (con lai la
+ * comment bo trong) nen toan bo bo cuc bi vo/chong cheo. File nay viet
+ * lai day du.
+ */
+
+.create-shell { padding-top: 28px; padding-bottom: 60px; max-width: 820px; }
+
+.create-topbar {
+    position: sticky; top: var(--header-height); z-index: 40; background: rgba(248, 250, 252, 0.92);
+    backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 14px 0; margin-bottom: 20px; flex-wrap: wrap;
+}
+.create-topbar-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+.visibility-toggle {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--white);
+    border: 1px solid var(--border); border-radius: var(--radius-full); font-weight: 700; font-size: 13.5px; color: var(--gray-700);
+}
+.visibility-toggle .icon { color: var(--gray-500); width: 17px; height: 17px; }
+.visibility-toggle.is-public .icon { color: var(--success); }
+
+.quiz-title-card { margin-bottom: 22px; }
+.title-input { font-size: 20px; font-weight: 700; padding: 14px 16px; }
+
+.questions-list { display: flex; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+
+.question-card {
+    background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 22px; box-shadow: var(--shadow-sm); position: relative;
+}
+.question-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.question-number {
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: var(--primary);
+    background: rgba(99, 102, 241, 0.1); padding: 5px 14px; border-radius: var(--radius-full);
+}
+.icon-btn.danger:hover { background: #fef2f2; color: var(--danger); }
+
+.question-input { margin-bottom: 18px; font-size: 15.5px; min-height: 64px; }
+
+.options-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.option-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-md); transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.option-row.is-correct { border-color: var(--success); background: #ecfdf5; }
+.option-badge {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--gray-100);
+    color: var(--gray-500); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;
+}
+.option-row.is-correct .option-badge { background: var(--success); color: #fff; }
+.correct-radio {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--gray-300, var(--gray-400));
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color var(--transition-fast);
+}
+.correct-radio input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.correct-radio .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--success); opacity: 0; transform: scale(0.5); transition: all var(--transition-fast); }
+.option-row.is-correct .correct-radio { border-color: var(--success); }
+.option-row.is-correct .correct-radio .dot { opacity: 1; transform: scale(1); }
+.option-input { flex: 1; min-width: 0; border: none; padding: 8px 4px; box-shadow: none !important; background: transparent; }
+.option-input:focus { outline: none; box-shadow: none; }
+.delete-option-btn { flex-shrink: 0; width: 32px; height: 32px; }
+
+.add-option-btn { align-self: flex-start; }
+.add-question-btn { border-style: dashed; padding: 18px; font-size: 15px; }
+
+.correct-hint { font-size: 12.5px; color: var(--gray-500); margin: 0 0 12px; display: flex; align-items: center; gap: 6px; }
+
+@media (max-width: 480px) {
+    .question-card { padding: 16px; }
+    .create-topbar { justify-content: center; }
+}

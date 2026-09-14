@@ -1,0 +1,68 @@
+/**
+ * variables.css - Bo bien thiet ke (design tokens) dung chung cho toan bo
+ * giao dien. Thay doi mau sac / khoang cach o day se ap dung cho ca he
+ * thong, giup giao dien dong bo va de bao tri.
+ */
+:root {
+    /* Mau thuong hieu */
+    --primary: #6366f1;
+    --primary-dark: #4338ca;
+    --primary-light: #818cf8;
+    --secondary: #8b5cf6;
+    --accent: #06b6d4;
+
+    /* Mau trang thai */
+    --success: #10b981;
+    --success-dark: #047857;
+    --danger: #ef4444;
+    --danger-dark: #b91c1c;
+    --warning: #f59e0b;
+    --warning-dark: #b45309;
+    --info: #3b82f6;
+
+    /* Mau nen tang */
+    --dark: #0f172a;
+    --gray-900: #1e293b;
+    --gray-700: #334155;
+    --gray-500: #64748b;
+    --gray-400: #94a3b8;
+    --gray-200: #e2e8f0;
+    --gray-100: #f1f5f9;
+    --gray-50: #f8fafc;
+    --white: #ffffff;
+    --border: #e2e8f0;
+
+    /* Bi danh (alias) giu tuong thich voi cac lop cu */
+    --gray: var(--gray-500);
+    --light-gray: var(--gray-100);
+
+    --gradient-brand: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    --gradient-page: linear-gradient(180deg, #ffffff 0%, var(--gray-50) 100%);
+
+    /* Do bo goc */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-full: 999px;
+
+    /* Bong do */
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.14);
+    --shadow-brand: 0 10px 25px rgba(99, 102, 241, 0.28);
+
+    /* Chuyen dong */
+    --transition-fast: 0.15s ease;
+    --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Chuoi phong chu */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --header-height: 68px;
+    --z-header: 100;
+    --z-sidebar: 999;
+    --z-overlay: 998;
+    --z-modal: 1000;
+    --z-toast: 9999;
+}

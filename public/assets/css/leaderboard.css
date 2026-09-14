@@ -1,0 +1,17 @@
+.leaderboard-shell { max-width: 680px; padding-top: 10px; padding-bottom: 60px; }
+.your-best-card { display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-radius: var(--radius-lg); background: var(--gradient-brand); color: #fff; margin-bottom: 24px; }
+.your-best-card .icon-xl { color: #fff; flex-shrink: 0; }
+.your-best-title { font-size: 13px; opacity: 0.85; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.your-best-value { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.your-best-rank { margin-left: auto; text-align: right; }
+
+.rank-row { display: flex; align-items: center; gap: 16px; padding: 16px 18px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 10px; background: var(--white); }
+.rank-row.rank-1 { border-color: #f59e0b; background: #fffbeb; }
+.rank-row.rank-2 { border-color: #94a3b8; background: #f8fafc; }
+.rank-row.rank-3 { border-color: #c2703d; background: #fff7ed; }
+.rank-number { width: 34px; height: 34px; border-radius: 50%; background: var(--gray-100); color: var(--gray-700); display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+.rank-1 .rank-number { background: #f59e0b; color: #fff; }
+.rank-2 .rank-number { background: #94a3b8; color: #fff; }
+.rank-3 .rank-number { background: #c2703d; color: #fff; }
+.rank-name { flex: 1; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-time { font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }

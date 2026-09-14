@@ -1,1 +1,16 @@
-
+.auth-page-body { min-height: 100vh; background: var(--gradient-page); display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+.auth-wrap { width: 100%; max-width: 420px; }
+.auth-card { background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); padding: 40px; }
+@media (max-width: 480px) { .auth-card { padding: 28px 22px; border-radius: var(--radius-lg); } }
+.auth-header { text-align: center; margin-bottom: 26px; }
+.auth-header .logo-mark { margin: 0 auto 16px; width: 56px; height: 56px; border-radius: var(--radius-md); }
+.auth-header .logo-mark .icon { width: 30px; height: 30px; }
+.auth-header h1 { font-size: 24px; font-weight: 800; margin: 0 0 6px; }
+.auth-header p { color: var(--gray-500); margin: 0; font-size: 14.5px; }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.form-footer { display: flex; justify-content: flex-end; margin: -8px 0 18px; }
+.link-button { background: none; border: none; color: var(--primary); font-weight: 700; font-size: 13.5px; cursor: pointer; text-decoration: none; padding: 0; }
+.link-button:hover { text-decoration: underline; }
+.auth-footer { text-align: center; margin-top: 22px; }
+.password-strength-hint { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; color: var(--gray-500); }
