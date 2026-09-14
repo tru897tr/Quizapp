@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quan tri - Quiz Master</title>
+<link rel="stylesheet" href="/assets/css/variables.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body class="page-shell" data-skip-auto-auth>
+
+<header class="app-header">
+    <div class="container">
+        <button class="icon-btn" id="menuToggle" aria-label="Mo menu" data-icon="menu"></button>
+        <a href="/" class="logo">
+            <span class="logo-mark" data-icon="target"></span>
+            <span class="logo-text">Quiz Master</span>
+        </a>
+        <div class="header-spacer"></div>
+        <div id="userMenu"></div>
+    </div>
+</header>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">Menu</span>
+        <button class="icon-btn" id="closeSidebarBtn" aria-label="Dong menu" data-icon="close"></button>
+    </div>
+    <nav class="sidebar-menu">
+        <a href="/"><span data-icon="home"></span><span>Trang chu</span></a>
+        <a href="/create"><span data-icon="plus-circle"></span><span>Tao cau hoi</span></a>
+        <a href="/myactivities"><span data-icon="book"></span><span>Danh sach cau hoi</span></a>
+        <a href="/settings"><span data-icon="settings"></span><span>Cai dat</span></a>
+        <a href="/admin" id="sidebarAdmin" style="display:none"><span data-icon="shield-check"></span><span>Quan tri</span></a>
+        <hr>
+        <a href="/login" id="sidebarLogin"><span data-icon="login"></span><span>Dang nhap</span></a>
+        <a href="javascript:void(0)" id="sidebarLogout" style="display:none"><span data-icon="logout"></span><span>Dang xuat</span></a>
+    </nav>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div id="deniedState" class="container" style="display:none;padding-top:60px">
+    <div class="empty-state">
+        <div class="icon-xl" data-icon="lock"></div>
+        <h3 class="empty-title">Khong co quyen truy cap</h3>
+        <p class="empty-subtitle">Trang nay chi danh cho Quan tri vien.</p>
+        <a href="/" class="btn btn-primary">Ve trang chu</a>
+    </div>
+</div>
+
+<div class="container admin-shell" id="adminShell" style="display:none">
+    <div class="page-head" style="padding-top:16px">
+        <h1 class="page-title">Trang quan tri</h1>
+        <p class="page-subtitle">Chan/mo chan dia chi IP va theo doi nhat ky truy cap he thong.</p>
+    </div>
+
+    <div class="stat-grid" id="statGrid"></div>
+
+    <div class="card card-pad">
+        <h2 class="settings-card-title"><span data-icon="shield"></span> Chan dia chi IP</h2>
+        <p class="settings-card-subtitle">Them mot dia chi IP vao danh sach chan thu cong.</p>
+        <div class="block-form-row">
+            <input type="text" id="blockIpInput" class="form-input" placeholder="Vi du: 203.0.113.10">
+            <input type="text" id="blockReasonInput" class="form-input" placeholder="Ly do (tuy chon)">
+            <button class="btn btn-danger" id="blockIpBtn">Chan IP</button>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead><tr><th>Dia chi IP</th><th>Ly do</th><th>Thoi gian chan</th><th>Nguoi chan</th><th></th></tr></thead>
+                <tbody id="blockedIpsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card card-pad">
+        <h2 class="settings-card-title"><span data-icon="list"></span> Nhat ky truy cap gan day</h2>
+        <p class="settings-card-subtitle">200 hoat dong gan nhat trong he thong.</p>
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead><tr><th>Thoi gian</th><th>Hanh dong</th><th>IP</th><th>Thiet bi</th></tr></thead>
+                <tbody id="deviceLogsBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/toast.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/admin.js"></script>
+</body>
+</html>

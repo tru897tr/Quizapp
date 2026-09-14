@@ -3,51 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chỉnh sửa câu hỏi - Quiz Master</title>
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/create.css">
-<link rel="stylesheet" href="/css/toast.css">
+<title>Sua cau hoi - Quiz Master</title>
+<link rel="stylesheet" href="/assets/css/variables.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/create.css">
 </head>
-<body>
-<div class="create-container">
-<div class="create-header">
-<div class="container">
-<a href="/" class="logo">
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-<rect width="32" height="32" rx="8" fill="#6366f1"/>
-<path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
-</svg>
-<span>Quiz Master</span>
-</a>
-<div style="display:flex;gap:12px;align-items:center;">
-<span id="userDisplay" style="font-weight:600;color:var(--dark);font-size:15px;"></span>
-<a href="/myactivities" class="btn btn-secondary" style="padding:11px 20px;">Danh sách câu hỏi</a>
+<body class="page-shell" data-skip-auto-auth>
+
+<header class="app-header">
+    <div class="container">
+        <button class="icon-btn" id="menuToggle" aria-label="Mo menu" data-icon="menu"></button>
+        <a href="/" class="logo">
+            <span class="logo-mark" data-icon="target"></span>
+            <span class="logo-text">Quiz Master</span>
+        </a>
+        <div class="header-spacer"></div>
+        <div id="userMenu"></div>
+    </div>
+</header>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">Menu</span>
+        <button class="icon-btn" id="closeSidebarBtn" aria-label="Dong menu" data-icon="close"></button>
+    </div>
+    <nav class="sidebar-menu">
+        <a href="/"><span data-icon="home"></span><span>Trang chu</span></a>
+        <a href="/create"><span data-icon="plus-circle"></span><span>Tao cau hoi</span></a>
+        <a href="/myactivities"><span data-icon="book"></span><span>Danh sach cau hoi</span></a>
+        <a href="/settings"><span data-icon="settings"></span><span>Cai dat</span></a>
+        <a href="/admin" id="sidebarAdmin" style="display:none"><span data-icon="shield-check"></span><span>Quan tri</span></a>
+        <hr>
+        <a href="/login" id="sidebarLogin"><span data-icon="login"></span><span>Dang nhap</span></a>
+        <a href="javascript:void(0)" id="sidebarLogout" style="display:none"><span data-icon="logout"></span><span>Dang xuat</span></a>
+    </nav>
 </div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div id="loadingState" class="loading-row"><span class="spinner"></span> Dang tai du lieu quiz...</div>
+
+<div class="container create-shell" id="editShell" style="display:none">
+    <div class="create-topbar">
+        <a href="/myactivities" class="btn btn-ghost btn-sm"><span data-icon="arrow-left" data-icon-class="icon-sm"></span> Quay lai</a>
+        <div class="create-topbar-actions">
+            <label class="visibility-toggle" id="visibilityToggleWrap">
+                <span data-icon="lock" id="visibilityIcon"></span>
+                <span id="visibilityLabel">Rieng tu</span>
+                <span class="switch">
+                    <input type="checkbox" id="isPublicToggle">
+                    <span class="switch-track"></span>
+                </span>
+            </label>
+            <button class="btn btn-danger btn-sm" id="deleteQuizBtn"><span data-icon="trash" data-icon-class="icon-sm"></span></button>
+            <button class="btn btn-primary" id="saveQuizBtn"><span data-icon="check" data-icon-class="icon-sm"></span> Luu thay doi</button>
+        </div>
+    </div>
+
+    <div class="card card-pad quiz-title-card">
+        <label class="form-label" for="quizTitle">Tieu de quiz</label>
+        <input type="text" id="quizTitle" class="form-input title-input" placeholder="Vi du: Kien thuc tong quat" maxlength="200">
+    </div>
+
+    <div id="questionsList" class="questions-list"></div>
+
+    <button class="btn btn-outline btn-block add-question-btn" id="addQuestionBtn">
+        <span data-icon="plus"></span> Them cau hoi
+    </button>
 </div>
+
+<div id="deleteConfirmModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header"><h2 class="modal-title">Xoa quiz nay?</h2></div>
+        <div class="modal-body">Hanh dong nay khong the hoan tac. Toan bo cau hoi va ket qua lien quan se bi xoa vinh vien.</div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelDeleteBtn" type="button">Huy</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn" type="button">Xoa vinh vien</button>
+        </div>
+    </div>
 </div>
-<div class="create-title-section">
-<input type="text" id="quizTitle" class="title-input" placeholder="Tiêu đề quiz của bạn..." maxlength="200">
-</div>
-<div class="questions-container" id="questionsContainer"></div>
-<button class="add-question-btn" onclick="addQuestion()">+ Thêm câu hỏi</button>
-<div class="action-panel">
-<div class="action-panel-content">
-<div class="visibility-toggle">
-<label class="visibility-switch">
-<input type="checkbox" id="publicToggle">
-<span class="slider"></span>
-</label>
-<div>
-<label for="publicToggle" style="display:block;cursor:pointer;">Chế độ công khai</label>
-<span class="visibility-status" id="visibilityStatus">Riêng tư</span>
-</div>
-</div>
-<button class="submit-btn" onclick="updateQuiz()">✓ Lưu thay đổi</button>
-</div>
-</div>
-</div>
-<div id="message" class="message"></div>
-<script src="/js/toast.js"></script>
-<script src="/js/edit.js"></script>
+
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/toast.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/quiz-editor.js"></script>
+<script src="/assets/js/edit.js"></script>
 </body>
 </html>

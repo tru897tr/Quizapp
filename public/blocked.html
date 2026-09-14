@@ -3,52 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bạn đã bị chặn - Quiz Master</title>
-<link rel="stylesheet" href="/css/style.css">
-<style>
-.blocked-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%)}
-.blocked-content{background:var(--white);border-radius:20px;padding:60px 48px;max-width:600px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.4)}
-@media (max-width:768px){.blocked-content{padding:40px 32px}}
-@media (max-width:480px){.blocked-content{padding:30px 20px;border-radius:16px}}
-.blocked-icon{font-size:100px;margin-bottom:24px}
-@media (max-width:768px){.blocked-icon{font-size:80px}}
-@media (max-width:480px){.blocked-icon{font-size:64px;margin-bottom:16px}}
-.blocked-title{font-size:42px;font-weight:800;margin-bottom:16px;color:var(--danger)}
-@media (max-width:768px){.blocked-title{font-size:32px}}
-@media (max-width:480px){.blocked-title{font-size:26px}}
-.blocked-message{color:var(--gray);font-size:18px;line-height:1.8;margin-bottom:32px}
-@media (max-width:480px){.blocked-message{font-size:16px;margin-bottom:24px}}
-.device-info{background:var(--light-gray);padding:24px;border-radius:12px;margin:32px 0;text-align:left}
-@media (max-width:480px){.device-info{padding:20px;margin:24px 0}}
-.device-info-title{font-weight:700;margin-bottom:16px;font-size:16px}
-@media (max-width:480px){.device-info-title{font-size:15px}}
-.device-info-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
-.device-info-item:last-child{border-bottom:none}
-.device-info-label{color:var(--gray);font-size:14px}
-@media (max-width:480px){.device-info-label{font-size:13px}}
-.device-info-value{font-weight:600;font-size:14px}
-@media (max-width:480px){.device-info-value{font-size:13px}}
-</style>
+<title>Truy cap bi chan - Quiz Master</title>
+<link rel="stylesheet" href="/assets/css/variables.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/misc.css">
 </head>
-<body>
-<div class="blocked-page">
-<div class="blocked-content">
-<div class="blocked-icon">🚫</div>
-<h1 class="blocked-title">Truy cập bị chặn</h1>
-<p class="blocked-message">Thiết bị của bạn đã bị chặn khỏi hệ thống.<br>Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ quản trị viên.</p>
-<div class="device-info" id="deviceInfo">
-<div class="device-info-title">📱 Thông tin thiết bị của bạn:</div>
-<div class="device-info-item"><span class="device-info-label">IP Address:</span><span class="device-info-value" id="deviceIp">Đang tải...</span></div>
-<div class="device-info-item"><span class="device-info-label">Loại thiết bị:</span><span class="device-info-value" id="deviceType">Đang tải...</span></div>
-<div class="device-info-item"><span class="device-info-label">Hệ điều hành:</span><span class="device-info-value" id="deviceOS">Đang tải...</span></div>
-<div class="device-info-item"><span class="device-info-label">Trình duyệt:</span><span class="device-info-value" id="deviceBrowser">Đang tải...</span></div>
+<body class="center-page-body">
+<div class="center-card">
+    <div class="icon-xl" data-icon="shield" style="color:var(--danger)"></div>
+    <h1>Truy cap da bi chan</h1>
+    <p>Dia chi IP cua ban da bi quan tri vien chan khoi he thong nay. Neu ban cho rang day la nham lan, vui long lien he quan tri vien.</p>
+    <div class="device-info-list" id="deviceInfoList">
+        <div class="device-info-row"><span>Dang tai...</span><span></span></div>
+    </div>
 </div>
-<p style="font-size:14px;color:var(--gray);margin-top:24px">Mã thiết bị: <code id="deviceCode" style="background:#fee2e2;padding:4px 8px;border-radius:4px;font-weight:600"></code></p>
-</div>
-</div>
-<script>
-async function loadDeviceInfo(){try{const response=await fetch('/api/device-info');const data=await response.json();if(data.success){const device=data.device;document.getElementById('deviceIp').textContent=device.ip;document.getElementById('deviceType').textContent=device.deviceType;document.getElementById('deviceOS').textContent=device.os;document.getElementById('deviceBrowser').textContent=device.browser;document.getElementById('deviceCode').textContent=device.ip.substring(0,15)+'***'}}catch(error){console.error('Failed to load device info')}}
-window.addEventListener('DOMContentLoaded',loadDeviceInfo);
-</script>
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/blocked.js"></script>
 </body>
 </html>

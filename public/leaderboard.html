@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tao cau hoi - Quiz Master</title>
+<title>Bang xep hang - Quiz Master</title>
 <link rel="stylesheet" href="/assets/css/variables.css">
 <link rel="stylesheet" href="/assets/css/base.css">
-<link rel="stylesheet" href="/assets/css/create.css">
+<link rel="stylesheet" href="/assets/css/leaderboard.css">
 </head>
 <body class="page-shell" data-skip-auto-auth>
 
@@ -40,32 +40,41 @@
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="container create-shell">
-    <div class="create-topbar">
-        <a href="/myactivities" class="btn btn-ghost btn-sm"><span data-icon="arrow-left" data-icon-class="icon-sm"></span> Quay lai</a>
-        <div class="create-topbar-actions">
-            <label class="visibility-toggle" id="visibilityToggleWrap">
-                <span data-icon="lock" id="visibilityIcon"></span>
-                <span id="visibilityLabel">Rieng tu</span>
-                <span class="switch">
-                    <input type="checkbox" id="isPublicToggle">
-                    <span class="switch-track"></span>
-                </span>
-            </label>
-            <button class="btn btn-primary" id="saveQuizBtn"><span data-icon="check" data-icon-class="icon-sm"></span> Luu quiz</button>
+<div class="container leaderboard-shell">
+    <div class="page-head" style="padding-top:16px">
+        <h1 class="page-title" id="quizTitle">Bang xep hang</h1>
+        <p class="page-subtitle">Xep hang theo tong thoi gian hoan thanh nhanh nhat.</p>
+    </div>
+
+    <div id="loadingState" class="loading-row"><span class="spinner"></span> Dang tai bang xep hang...</div>
+
+    <div id="content" style="display:none">
+        <div class="your-best-card" id="yourBestCard" style="display:none">
+            <div class="icon-xl" data-icon="medal"></div>
+            <div>
+                <div class="your-best-title">Ket qua tot nhat cua ban</div>
+                <div class="your-best-value" id="yourBestValue"></div>
+            </div>
+            <div class="your-best-rank">
+                <div class="your-best-title">Hang</div>
+                <div class="your-best-value" id="yourBestRank"></div>
+            </div>
+        </div>
+
+        <div id="rankingList"></div>
+
+        <div id="emptyRanking" class="empty-state" style="display:none">
+            <div class="icon-xl" data-icon="trophy"></div>
+            <h3 class="empty-title">Chua co ket qua nao</h3>
+            <p class="empty-subtitle">Hay la nguoi dau tien hoan thanh quiz nay!</p>
         </div>
     </div>
 
-    <div class="card card-pad quiz-title-card">
-        <label class="form-label" for="quizTitle">Tieu de quiz</label>
-        <input type="text" id="quizTitle" class="form-input title-input" placeholder="Vi du: Kien thuc tong quat" maxlength="200">
+    <div id="notFoundState" class="empty-state" style="display:none">
+        <div class="icon-xl" data-icon="alert-triangle"></div>
+        <h3 class="empty-title">Khong tim thay quiz</h3>
+        <a href="/" class="btn btn-primary">Ve trang chu</a>
     </div>
-
-    <div id="questionsList" class="questions-list"></div>
-
-    <button class="btn btn-outline btn-block add-question-btn" id="addQuestionBtn">
-        <span data-icon="plus"></span> Them cau hoi
-    </button>
 </div>
 
 <script src="/assets/js/icons.js"></script>
@@ -73,7 +82,6 @@
 <script src="/assets/js/api.js"></script>
 <script src="/assets/js/toast.js"></script>
 <script src="/assets/js/nav.js"></script>
-<script src="/assets/js/quiz-editor.js"></script>
-<script src="/assets/js/create.js"></script>
+<script src="/assets/js/leaderboard.js"></script>
 </body>
 </html>

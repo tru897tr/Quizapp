@@ -3,62 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cài đặt - Quiz Master</title>
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/toast.css">
+<title>Cai dat - Quiz Master</title>
+<link rel="stylesheet" href="/assets/css/variables.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/settings.css">
 </head>
-<body>
-<div style="min-height:100vh;background:linear-gradient(180deg,#f8fafc,#f1f5f9)">
-<div style="background:rgba(255,255,255,0.98);padding:16px 0;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.05);position:sticky;top:0;z-index:100">
-<div class="container" style="display:flex;justify-content:space-between;align-items:center">
-<button class="menu-toggle" onclick="openSidebar()">
-<span></span><span></span><span></span>
-</button>
-<a href="/" class="logo" style="margin:0 auto">
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-<rect width="32" height="32" rx="8" fill="#6366f1"/>
-<path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
-</svg>
-<span>Quiz Master</span>
-</a>
-<span id="userDisplay" style="font-weight:600;color:var(--dark)"></span>
-</div>
-</div>
-<div class="container" style="max-width:900px;margin:40px auto;padding:0 24px">
-<h1 style="font-size:32px;font-weight:800;margin-bottom:32px">⚙️ Cài đặt</h1>
-<div style="background:var(--white);border-radius:16px;padding:32px;margin-bottom:24px;border:1px solid var(--border)">
-<h2 style="font-size:20px;font-weight:700;margin-bottom:24px">👤 Tài khoản</h2>
-<button class="btn btn-danger" onclick="logout()">🚪 Đăng xuất</button>
-</div>
-</div>
-</div>
+<body class="page-shell" data-skip-auto-auth>
+
+<header class="app-header">
+    <div class="container">
+        <button class="icon-btn" id="menuToggle" aria-label="Mo menu" data-icon="menu"></button>
+        <a href="/" class="logo">
+            <span class="logo-mark" data-icon="target"></span>
+            <span class="logo-text">Quiz Master</span>
+        </a>
+        <div class="header-spacer"></div>
+        <div id="userMenu"></div>
+    </div>
+</header>
+
 <div class="sidebar" id="sidebar">
-<div class="sidebar-header">
-<div class="sidebar-title">Menu</div>
-<button class="close-sidebar" onclick="closeSidebar()">✕</button>
+    <div class="sidebar-header">
+        <span class="sidebar-title">Menu</span>
+        <button class="icon-btn" id="closeSidebarBtn" aria-label="Dong menu" data-icon="close"></button>
+    </div>
+    <nav class="sidebar-menu">
+        <a href="/"><span data-icon="home"></span><span>Trang chu</span></a>
+        <a href="/create"><span data-icon="plus-circle"></span><span>Tao cau hoi</span></a>
+        <a href="/myactivities"><span data-icon="book"></span><span>Danh sach cau hoi</span></a>
+        <a href="/settings"><span data-icon="settings"></span><span>Cai dat</span></a>
+        <a href="/admin" id="sidebarAdmin" style="display:none"><span data-icon="shield-check"></span><span>Quan tri</span></a>
+        <hr>
+        <a href="/login" id="sidebarLogin"><span data-icon="login"></span><span>Dang nhap</span></a>
+        <a href="javascript:void(0)" id="sidebarLogout" style="display:none"><span data-icon="logout"></span><span>Dang xuat</span></a>
+    </nav>
 </div>
-<div class="sidebar-menu">
-<a href="/">🏠 Trang chủ</a>
-<a href="/create">➕ Tạo câu hỏi</a>
-<a href="/myactivities">📚 Danh sách câu hỏi</a>
-<a href="/settings">⚙️ Cài đặt</a>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="container settings-shell">
+    <div class="page-head" style="padding-top:16px">
+        <h1 class="page-title">Cai dat</h1>
+        <p class="page-subtitle">Quan ly thong tin tai khoan, bao mat va lich su lam bai.</p>
+    </div>
+
+    <!-- Thong tin tai khoan -->
+    <div class="card card-pad">
+        <div class="profile-row">
+            <div class="profile-avatar" id="avatarInitial">?</div>
+            <div>
+                <div class="profile-name" id="profileFullname">--</div>
+                <div class="profile-username" id="profileUsername">--</div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <div>
+                <div class="info-item-label">Email</div>
+                <div class="info-item-value" id="profileEmail">--</div>
+            </div>
+            <div>
+                <div class="info-item-label">Ngay tham gia</div>
+                <div class="info-item-value" id="profileCreatedAt">--</div>
+            </div>
+            <div>
+                <div class="info-item-label">Vai tro</div>
+                <div class="info-item-value" id="profileRole">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doi mat khau -->
+    <div class="card card-pad">
+        <h2 class="settings-card-title"><span data-icon="lock"></span> Doi mat khau</h2>
+        <p class="settings-card-subtitle">Nen dung mat khau rieng biet, khong dung lai o noi khac.</p>
+        <div id="changePasswordMessage" class="message"></div>
+        <form id="changePasswordForm">
+            <div class="form-group">
+                <label class="form-label" for="currentPassword">Mat khau hien tai</label>
+                <input type="password" id="currentPassword" class="form-input" autocomplete="current-password" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="newPassword">Mat khau moi</label>
+                <input type="password" id="newPassword" class="form-input" minlength="6" autocomplete="new-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Cap nhat mat khau</button>
+        </form>
+    </div>
+
+    <!-- Phien dang nhap -->
+    <div class="card card-pad">
+        <h2 class="settings-card-title"><span data-icon="shield-check"></span> Phien dang nhap</h2>
+        <p class="settings-card-subtitle">Danh sach thiet bi dang dang nhap vao tai khoan cua ban.</p>
+        <div id="sessionsList"></div>
+        <button class="btn btn-outline btn-sm" id="logoutAllBtn" style="margin-top:14px">
+            <span data-icon="logout" data-icon-class="icon-sm"></span> Dang xuat khoi tat ca thiet bi
+        </button>
+    </div>
+
+    <!-- Lich su ket qua -->
+    <div class="card card-pad">
+        <h2 class="settings-card-title"><span data-icon="chart"></span> Lich su ket qua</h2>
+        <p class="settings-card-subtitle">10 lan lam bai gan day nhat cua ban.</p>
+        <div id="resultsTableWrap" class="table-scroll"></div>
+    </div>
+
+    <!-- Quan tri -->
+    <div class="card card-pad" id="adminCard" style="display:none">
+        <h2 class="settings-card-title"><span data-icon="shield-check"></span> Khu vuc quan tri</h2>
+        <p class="settings-card-subtitle">Ban co quyen Quan tri vien. Quan ly chan/mo chan IP va nhat ky truy cap.</p>
+        <a href="/admin" class="btn btn-secondary btn-sm">Mo trang Quan tri</a>
+    </div>
 </div>
-</div>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<script src="/js/toast.js"></script>
-<script>
-function openSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebarOverlay').classList.add('show');
-    document.body.classList.add('no-scroll');
-}
-function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('show');
-    document.body.classList.remove('no-scroll');
-}
-window.addEventListener('DOMContentLoaded',async()=>{try{const res=await fetch('/api/verify');if(!res.ok){window.location.href='/login';return}const data=await res.json();document.getElementById('userDisplay').textContent=data.user.username}catch(err){window.location.href='/login'}});
-async function logout(){if(confirm('Bạn có chắc muốn đăng xuất?')){try{await fetch('/api/logout',{method:'POST'})}catch(err){}window.location.href='/'}}
-</script>
+
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/toast.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/settings.js"></script>
 </body>
 </html>

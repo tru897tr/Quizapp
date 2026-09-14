@@ -3,18 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chia sẻ Quiz - Quiz Master</title>
-<link rel="stylesheet" href="/css/style.css">
+<title>Chia se quiz - Quiz Master</title>
+<link rel="stylesheet" href="/assets/css/variables.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/misc.css">
 </head>
-<body>
-<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)">
-<div style="background:var(--white);border-radius:20px;padding:48px;max-width:500px;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.35)">
-<div style="font-size:80px;margin-bottom:24px">🎯</div>
-<h1 id="quizTitle" style="font-size:32px;font-weight:800;margin-bottom:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Quiz Title</h1>
-<p id="quizDesc" style="color:var(--gray);font-size:16px;margin-bottom:32px">Nhấn vào nút bên dưới để bắt đầu làm quiz</p>
-<button class="btn btn-primary" style="width:100%;max-width:300px;margin:0 auto" onclick="startQuiz()">Bắt đầu làm quiz</button>
+<body class="center-page-body">
+<div class="center-card" id="card">
+    <div id="loadingState" class="loading-row"><span class="spinner"></span> Dang tai...</div>
+
+    <div id="content" style="display:none">
+        <div class="logo-mark icon-xl" style="margin:0 auto 20px;width:64px;height:64px" data-icon="target"></div>
+        <h1 id="quizTitle"></h1>
+        <div class="share-meta">
+            <span class="share-meta-item"><span data-icon="user" data-icon-class="icon-sm"></span><span id="quizAuthor"></span></span>
+            <span class="share-meta-item"><span data-icon="book" data-icon-class="icon-sm"></span><span id="quizQuestionCount"></span></span>
+        </div>
+        <div class="share-actions">
+            <a href="#" id="playBtn" class="btn btn-primary btn-block"><span data-icon="play" data-icon-class="icon-sm"></span> Bat dau lam bai</a>
+            <button class="btn btn-outline btn-block" id="copyLinkBtn"><span data-icon="share" data-icon-class="icon-sm"></span> Sao chep lien ket</button>
+        </div>
+    </div>
+
+    <div id="notFoundState" style="display:none">
+        <div class="icon-xl" data-icon="lock" style="color:var(--gray-400)"></div>
+        <h1>Khong the truy cap</h1>
+        <p>Quiz nay khong ton tai hoac dang o che do rieng tu.</p>
+        <a href="/" class="btn btn-primary btn-block">Ve trang chu</a>
+    </div>
 </div>
-</div>
-<script src="/js/share.js"></script>
+
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/toast.js"></script>
+<script src="/assets/js/share.js"></script>
 </body>
 </html>
